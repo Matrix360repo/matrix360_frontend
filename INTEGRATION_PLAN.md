@@ -3,7 +3,7 @@
 ## Source repositories
 - Public product frontend: `Matrix360repo/matrix360_frontend` (static HTML/CSS/JS). Its interactive actions are frontend simulations.
 - Mayur: `Matrix360repo/Matrix360_Engine_v4_and_Exports` — Python/FastAPI + worker, local single-user SQLite/files, local auth cookie. Documented `GET /healthz`; dataset import/job/export APIs require a session.
-- Tanmayi: `Matrix360repo/SocialManager` — Python/FastAPI content creation/review/export, Lakhotia-only pilot, SQLite/assets, required cloud secret in deployed mode. Documented `GET /health`, `GET /api/brand`, `POST /api/generate`, `GET /api/drafts`, `POST /api/drafts/{id}/decision`.
+- Tanmayi: `Matrix360repo/Matrix360_SocialManager_Free_Preview` — Python/FastAPI content creation/review/export, Lakhotia-only pilot, SQLite/assets, required cloud secret in deployed mode. Documented `GET /health`, `GET /api/brand`, `POST /api/generate`, `GET /api/drafts`, `POST /api/drafts/{id}/decision`.
 - Alternative historical content repo: `Matrix360repo/socialmediamanager` (has other packaging). **This PR selects `SocialManager` as the candidate; confirm with the owner before production use.**
 - Internal oversight project is a **different** Vercel project (`matrix-interns-dashboard`).
 
@@ -35,3 +35,6 @@ Mayur's data engine and Pratha's lead intelligence engine must remain independen
 - Authenticated frontend can access approved pilot flows via secured BFF.
 - One complete creative review/export and one authorized data-processing test using approved synthetic data.
 - Results and API failures logged and reproducible; director approval before sensitive client data moves.
+
+## Confirmed deployment target
+Frontend production URL: https://matrix360frontend.vercel.app/app.html (main). This is a frontend URL, not a deployed backend address. Render Free Preview records are ephemeral; use synthetic data only.
