@@ -1,0 +1,14 @@
+const fs=require('node:fs');
+const assert=require('node:assert/strict');
+const app=fs.readFileSync('app.html','utf8');
+const client=fs.readFileSync('matrix360-crm.js','utf8');
+const match=app.match(/window\.MATRIX360_CRM_CONFIG\s*=\s*\{\s*apiBase:\s*"([^"]+)"/);
+assert.ok(match,'Staging API configuration must exist');
+const url=new URL(match[1]);
+assert.equal(url.protocol,'https:','CRM API must use HTTPS');
+assert.ok(url.hostname.endsWith('.onrender.com'),'Expected a hosted Render backend for the pilot');
+assert.notEqual(url.hostname,'localhost');
+assert.ok(!app.includes('127.0.0.1:8000'),'Staging must not use localhost');
+assert.match(client,/response\.status === 401 && token/,'Authenticated 401 must clear session');
+assert.match(client,/reset\(\)/,'Missing session reset');
+console.log('Hosted CRM source contract passed:',url.origin);

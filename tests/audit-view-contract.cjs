@@ -1,0 +1,12 @@
+const assert=require('node:assert/strict');
+const fs=require('node:fs');
+const app=fs.readFileSync('app.html','utf8');
+const client=fs.readFileSync('matrix360-crm.js','utf8');
+assert.match(app,/id="m360-audit"/);
+assert.match(app,/id="m360-audit-count"/);
+assert.match(client,/api\('\/workspaces\/\' \+ slug \+ '\/audit'\)/);
+assert.match(client,/renderAudit\(audit\)/);
+assert.match(client,/document\.createElement\('tr'\)/);
+assert.match(client,/tr\.appendChild\(element\('td', value\)\)/);
+assert.doesNotMatch(client,/\.innerHTML\s*=.*entry\./);
+console.log('Audit history view source-contract tests passed (not a browser end-to-end test)');

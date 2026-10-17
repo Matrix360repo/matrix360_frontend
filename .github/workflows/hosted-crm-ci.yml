@@ -1,0 +1,22 @@
+name: Hosted CRM frontend integration
+on:
+  push:
+    branches: [feature/avinash-hosted-crm-staging]
+  pull_request:
+    branches: [main]
+permissions:
+  contents: read
+jobs:
+  contract:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Validate CRM JavaScript
+        run: node --check matrix360-crm.js
+      - name: Validate hosted API configuration and session failure handling
+        run: node tests/hosted-crm-contract.cjs
+      - name: Audit history UI contract
+        run: node tests/audit-view-contract.cjs
