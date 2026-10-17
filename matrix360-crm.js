@@ -23,6 +23,10 @@
     } catch { throw new Error('CRM API unreachable. Check API URL, backend, CORS and HTTPS.'); }
     let data;
     try { data = await response.json(); } catch { data = null; }
+    if (response.status === 401 && token) {
+      reset();
+      throw new Error('Session expired or access was revoked. Please sign in again.');
+    }
     if (!response.ok) throw new Error((data && typeof data.detail === 'string' ? data.detail : 'API error ' + response.status));
     return data;
   }
