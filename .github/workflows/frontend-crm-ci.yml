@@ -1,0 +1,21 @@
+name: CRM session regression
+on:
+  push:
+    branches: [feature/avinash-session-expiry-handling]
+  pull_request:
+    branches: [feature/avinash-hosted-crm-staging]
+permissions:
+  contents: read
+jobs:
+  browser-crm-check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Check frontend JavaScript syntax
+        run: node --check matrix360-crm.js
+      - name: Check unauthenticated session recovery contract
+        run: node tests/crm-session-contract.cjs
