@@ -56,14 +56,30 @@
     workspace = el('m360-workspace').value;
     if (!memberships.some(x => x.id === workspace)) throw new Error('Unauthorized workspace selection');
     const seq = generation, slug = encodeURIComponent(workspace);
-    const [stages, leads] = await Promise.all([api('/workspaces/' + slug + '/stages'), api('/workspaces/' + slug + '/leads')]);
+    const [stages, leads, audit] = await Promise.all([api('/workspaces/' + slug + '/stages'), api('/workspaces/' + slug + '/leads'), api('/workspaces/' + slug + '/audit')]);
     if (seq !== generation) return;
     validStages = stages;
     if (!Array.isArray(stages) || !Array.isArray(leads)) throw new Error('Unexpected CRM response');
     const stageSelect = el('m360-stage'); stageSelect.replaceChildren();
     for (const stage of stages) stageSelect.add(new Option(stage.replaceAll('_', ' '), stage));
     renderLeads(leads, seq);
+    renderAudit(audit);
+
     el('m360-count').textContent = leads.length + ' recorded lead(s) — verified API records';
+  }
+  function renderAudit(audit) {
+    if (!Array.isArray(audit)) throw new Error('Unexpected audit history response');
+    const body = el('m360-audit'); body.replaceChildren();
+    for (const entry of audit) {
+      const tr = document.createElement('tr');
+      const stamp = entry.created_at ? new Date(entry.created_at) : null;
+      const dateText = stamp && !Number.isNaN(stamp.valueOf()) ? stamp.toLocaleString() : '—';
+      for (const value of [dateText, String(entry.action || '—').replaceAll('_', ' '), entry.lead_id ?? '—', entry.actor_id ?? '—']) {
+        tr.appendChild(element('td', value));
+      }
+      body.appendChild(tr);
+    }
+    el('m360-audit-count').textContent = audit.length + ' recent activity event(s) — verified API records';
   }
   function renderLeads(leads, seq) {
     const body = el('m360-leads'); body.replaceChildren();
