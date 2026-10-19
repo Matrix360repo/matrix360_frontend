@@ -1,0 +1,19 @@
+name: Synthetic CRM browser-DOM journey
+on:
+  push:
+    branches: [feature/channel-neutral-crm-integration]
+  pull_request:
+    branches: [feature/workspace-assistant-budget-planner]
+permissions:
+  contents: read
+jobs:
+  browser-dom:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm install --no-save --no-audit --no-fund jsdom@26
+      - name: Run synthetic CRM journey
+        run: node tests/synthetic-crm-journey.cjs
