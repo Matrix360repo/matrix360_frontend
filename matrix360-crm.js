@@ -237,6 +237,7 @@
   function setAuthenticated(active) {
     el('m360-login-box').hidden = active;
     el('m360-data-box').hidden = !active;
+    document.dispatchEvent(new CustomEvent('m360-crm-auth-changed', { detail: { active } }));
   }
   function reset() {
     ++generation; ++copilotRequestId; token = null; workspace = null; memberships = []; validStages = []; audienceDataset = null; audiencePlan = null; audienceProfileIds = [];
