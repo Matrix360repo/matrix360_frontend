@@ -1,0 +1,35 @@
+name: CRM Copilot UI regression
+on:
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+jobs:
+  preview-contract:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Parse browser integration
+        run: node --check matrix360-crm.js
+      - name: Validate non-executing Copilot and tenant guardrails
+        run: |
+          node - <<'NODE'
+          const fs = require('fs');
+          const assert = require('node:assert/strict');
+          const js = fs.readFileSync('matrix360-crm.js','utf8');
+          const html = fs.readFileSync('app.html','utf8');
+          assert(js.includes("'/assistant/preview'") || js.includes("'/assistant/preview'"));
+          assert(js.includes('RULE_BASED_PREVIEW_ONLY'));
+          assert(js.includes('Multiple client memberships require administrator resolution'));
+          assert(js.includes('output.textContent = lines.join'));
+          assert(!js.includes('dangerouslySetInnerHTML'));
+          assert(html.includes('matrix360-crm-backend-p9os.onrender.com'));
+          assert(html.includes('m360-login-form'));
+          assert(html.includes('m360-audience-upload-form'));
+          assert(html.includes('m360-lead-form'));
+          console.log('Copilot static guardrails present. Browser and backend acceptance remain required.');
+          NODE

@@ -7,6 +7,112 @@
   const config = window.MATRIX360_CRM_CONFIG || {};
   const base = String(config.apiBase || '').replace(/\/+$/, '');
   let token = null, workspace = null, generation = 0, memberships = [], validStages = [], audienceDataset = null, audiencePlan = null;
+
+  // User-facing Copilot is a server-authorized, RULE-BASED PLAN PREVIEW until
+  // a separately approved and tested AI model/tool orchestration is deployed.
+  function initCopilotPanel() {
+    const target = el('m360-data-box');
+    if (!target || el('m360-assistant-form')) return;
+    const section = document.createElement('section');
+    section.className = 'box';
+    section.id = 'm360-assistant-panel';
+    section.style.cssText = 'margin-bottom:20px;padding:22px;border-radius:16px;';
+    const eyebrow = element('p', 'MATRIX 360 · GUIDED GROWTH');
+    eyebrow.style.cssText = 'font-size:12px;font-weight:700;letter-spacing:.08em;color:#17665c;margin-bottom:8px';
+    const heading = element('h3', 'What would you like your business to achieve?');
+    heading.style.cssText = 'font-size:clamp(21px,2vw,27px);margin:4px 0 8px';
+    const business = element('p', '');
+    business.id = 'm360-assistant-business';
+    business.style.cssText = 'font-weight:600;margin-bottom:9px';
+    const description = element('p', 'Describe a business objective. Review a proposed plan; nothing is sent, published, purchased or executed.');
+    description.style.cssText = 'margin:0 0 14px;color:#536a72';
+    const form = document.createElement('form');
+    form.id = 'm360-assistant-form';
+    const label = element('label', 'Business objective');
+    label.htmlFor = 'm360-assistant-goal';
+    const field = document.createElement('textarea');
+    field.id = 'm360-assistant-goal';
+    field.className = 'formcontrol';
+    field.maxLength = 600;
+    field.minLength = 3;
+    field.required = true;
+    field.rows = 3;
+    field.placeholder = 'For example: Find manufacturers relevant to our industrial property, then prepare an outreach proposal.';
+    const submit = element('button', 'Review proposed plan');
+    submit.className = 'btn primary';
+    submit.type = 'submit';
+    const state = element('p', 'Planning mode: not connected. Sign in to check workspace capabilities.');
+    state.id = 'm360-assistant-status';
+    state.setAttribute('role', 'status');
+    state.setAttribute('aria-live', 'polite');
+    state.style.cssText = 'margin:10px 0;color:#536a72';
+    const availability = element('p', '');
+    availability.id = 'm360-assistant-capabilities';
+    availability.style.cssText = 'font-size:13px;color:#536a72';
+    const output = document.createElement('div');
+    output.id = 'm360-assistant-preview';
+    output.hidden = true;
+    output.style.cssText = 'white-space:pre-line;background:#f2f7f7;padding:16px;border-radius:12px;margin-top:12px;color:#183b42';
+    form.append(label, field, submit);
+    section.append(eyebrow, heading, business, description, form, state, availability, output);
+    target.prepend(section);
+    form.addEventListener('submit', submitCopilotGoal);
+  }
+
+  function copilotMessage(text, isError = false) {
+    const node = el('m360-assistant-status');
+    if (!node) return;
+    node.textContent = text;
+    node.style.color = isError ? '#a32936' : '#17665c';
+  }
+
+  async function loadCopilotCapabilities() {
+    if (!workspace) return;
+    const caption = el('m360-assistant-capabilities');
+    const scope = '/workspaces/' + encodeURIComponent(workspace) + '/assistant/capabilities';
+    try {
+      const data = await api(scope);
+      if (!Array.isArray(data.capabilities)) throw new Error('Invalid capability response');
+      const summary = data.capabilities.map(x => x.id.replaceAll('_',' ') + ': ' + x.status.replaceAll('_',' ').toLowerCase()).join(' · ');
+      if (caption) caption.textContent = summary;
+      copilotMessage('Rule-based planning preview available. No AI model or live campaign execution is connected.');
+    } catch (error) {
+      if (caption) caption.textContent = 'This CRM deployment does not currently expose a verified Copilot service.';
+      copilotMessage('Copilot requires a reviewed backend deployment. Existing CRM features remain available.', true);
+    }
+  }
+
+  async function submitCopilotGoal(event) {
+    event.preventDefault();
+    if (!workspace || !token) return copilotMessage('Sign in to an authorized business first.', true);
+    const value = el('m360-assistant-goal').value.trim();
+    if (value.length < 3) return copilotMessage('Please describe a concrete business goal.', true);
+    const button = el('m360-assistant-form').querySelector('button[type=submit]');
+    button.disabled = true;
+    const output = el('m360-assistant-preview');
+    output.hidden = true;
+    copilotMessage('Preparing a review-only plan without sending data to an AI model…');
+    try {
+      const result = await api('/workspaces/' + encodeURIComponent(workspace) + '/assistant/preview', 'POST', { objective: value });
+      if (result.mode !== 'RULE_BASED_PREVIEW_ONLY' || result.executed !== false || !Array.isArray(result.steps)) throw new Error('Unexpected preview response');
+      const lines = [
+        'PLAN PREVIEW · NOT EXECUTED · NOT SAVED',
+        'Goal: ' + result.goal,
+        'Domain hint: ' + (result.domain_hint || 'unclassified'),
+        '',
+        ...result.steps.map((step, idx) => (idx + 1) + '. ' + step.title + ' [' + step.status.replaceAll('_',' ') + ']\n' + step.detail),
+        '',
+        'Limitations:',
+        ...(result.limitations || []).map(x => '• ' + x)
+      ];
+      output.textContent = lines.join('\n');
+      output.hidden = false;
+      copilotMessage('Review the proposed steps. This is guidance only; no action has been approved or executed.');
+    } catch (error) {
+      copilotMessage('Plan preview unavailable: ' + errorMessage(error), true);
+    } finally { button.disabled = false; }
+  }
+
   const errorMessage = e => (e instanceof Error ? e.message : String(e));
   function message(text, isError = false) {
     const node = el('m360-status'); if (!node) return;
@@ -37,6 +143,7 @@
     return data;
   }
   function element(tag, text) { const n = document.createElement(tag); n.textContent = text == null ? '' : String(text); return n; }
+  initCopilotPanel();
   function setAuthenticated(active) {
     el('m360-login-box').hidden = active;
     el('m360-data-box').hidden = !active;
@@ -45,21 +152,35 @@
     ++generation; token = null; workspace = null; memberships = []; validStages = [];
     el('m360-password').value = '';
     el('m360-leads').replaceChildren();
+    if (el('m360-assistant-preview')) el('m360-assistant-preview').hidden = true;
+    if (el('m360-assistant-goal')) el('m360-assistant-goal').value = '';
+    if (el('m360-assistant-business')) el('m360-assistant-business').textContent = '';
+    if (el('m360-assistant-capabilities')) el('m360-assistant-capabilities').textContent = '';
     setAuthenticated(false);
   }
   async function populateWorkspaces() {
     memberships = await api('/me/workspaces');
     if (!Array.isArray(memberships) || !memberships.length) throw new Error('No authorized workspace membership');
     const select = el('m360-workspace'); select.replaceChildren();
+    const isPortfolioAdmin = memberships.some(m => m.role === 'platform_owner' || m.role === 'agency_admin');
+    if (!isPortfolioAdmin && memberships.length > 1) {
+      throw new Error('Multiple client memberships require administrator resolution; no cross-business selector is available to clients.');
+    }
     for (const member of memberships) {
       const option = new Option(member.name, member.id); select.appendChild(option);
     }
+    const canChooseBusiness = isPortfolioAdmin && memberships.length > 1;
+    select.hidden = !canChooseBusiness;
+    const wsLabel = root.querySelector('label[for=m360-workspace]');
+    if (wsLabel) wsLabel.hidden = !canChooseBusiness;
     workspace = select.value;
     await loadWorkspace();
   }
   async function loadWorkspace() {
     ++generation;
     workspace = el('m360-workspace').value;
+    const member = memberships.find(x => x.id === workspace);
+    if (el('m360-assistant-business') && member) el('m360-assistant-business').textContent = 'Your business: ' + member.name;
     if (!memberships.some(x => x.id === workspace)) throw new Error('Unauthorized workspace selection');
     const seq = generation, slug = encodeURIComponent(workspace);
     const [stages, leads] = await Promise.all([api('/workspaces/' + slug + '/stages'), api('/workspaces/' + slug + '/leads')]);
@@ -71,6 +192,7 @@
     renderLeads(leads, seq);
     el('m360-count').textContent = leads.length + ' recorded lead(s) — verified API records';
     loadAudience().catch(e => audienceMessage(errorMessage(e), true));
+    loadCopilotCapabilities().catch(e => copilotMessage(errorMessage(e), true));
   }
   function renderLeads(leads, seq) {
     const body = el('m360-leads'); body.replaceChildren();
