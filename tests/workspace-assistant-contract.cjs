@@ -1,0 +1,15 @@
+const assert=require('node:assert/strict');
+const fs=require('node:fs'),vm=require('node:vm');
+const html=fs.readFileSync('login.html','utf8');
+const script=fs.readFileSync('client-access.js','utf8');
+for(const id of ['assistantForm','assistantQuestion','assistantAnswer','budgetPlanner','budgetAmount','budgetCurrentShare','budgetShift','budgetCalculate','budgetResult'])assert.match(html,new RegExp('id="'+id+'"'));
+assert.match(html,/Live.*campaign.*analytics|Connected campaign analytics/);
+assert.match(script,/lastLeads=l/);
+assert.match(script,/lastLeads=null/);
+assert.match(script,/Live LinkedIn, advertising and social campaign performance is not connected/);
+assert.match(script,/shift>20\|\|shift>share/);
+assert.match(script,/No data is exchanged with disconnected engines/);
+assert.doesNotMatch(script,/fetch\([^\n]+linkedin\.com/);
+assert.doesNotMatch(script,/innerHTML\s*=/);
+new vm.Script(script,{filename:'client-access.js'});
+console.log('Scoped assistant, permission boundary and conservative calculator source-contract checks passed');
