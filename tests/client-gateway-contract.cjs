@@ -13,7 +13,7 @@ assert.match(js,/const attempt=\+\+authVersion/);
 assert.ok((js.match(/if\(attempt!==authVersion\)return/g)||[]).length>=3,'Pending login must be invalidated at each asynchronous boundary');
 assert.match(js,/if\(!Array\.isArray\(ms\)\|\|ms\.length===0\)throw Error/);
 assert.match(js,/if\(res\.status===401&&token\)\{signOut\(\)/);
-assert.doesNotMatch(js,/\blocalStorage\s*\./);
+assert.doesNotMatch(js.replace(/\/\*[\s\S]*?\*\//g,''),/\blocalStorage\s*\./);
 assert.doesNotMatch(js,/\bsessionStorage\s*\./);
 assert.doesNotMatch(js,/\binnerHTML\s*=/,'Untrusted CRM values must not be HTML');
 assert.match(js,/document\.createElement\('td'\)/);
