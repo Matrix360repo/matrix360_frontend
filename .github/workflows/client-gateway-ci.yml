@@ -1,0 +1,21 @@
+name: Client gateway regression
+on:
+  push:
+    branches: [feature/client-gateway-session-hardening]
+  pull_request:
+    branches: [feature/client-identity-gateway]
+permissions:
+  contents: read
+jobs:
+  regression:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: JavaScript syntax
+        run: node --check client-access.js
+      - name: Identity gateway source contracts
+        run: node tests/client-gateway-contract.cjs
