@@ -6,7 +6,7 @@
   const el = id => root.querySelector('#' + id);
   const config = window.MATRIX360_CRM_CONFIG || {};
   const base = String(config.apiBase || '').replace(/\/+$/, '');
-  let token = null, workspace = null, generation = 0, memberships = [], validStages = [], audienceDataset = null;
+  let token = null, workspace = null, generation = 0, memberships = [], validStages = [], audienceDataset = null, audiencePlan = null;
   const errorMessage = e => (e instanceof Error ? e.message : String(e));
   function message(text, isError = false) {
     const node = el('m360-status'); if (!node) return;
@@ -122,7 +122,9 @@
     const jobs = await api(scope + '/jobs');
     renderAudienceJobs(Array.isArray(jobs.jobs) ? jobs.jobs : []);
     el('m360-audience-start').disabled = !audienceDataset;
-    audienceMessage(audienceDataset ? 'Dataset ready. Review the default client profiles, then start classification.' : 'Choose a supported dataset to begin.');
+    el('m360-audience-plan').disabled = !audienceDataset;
+    el('m360-audience-start-ai').disabled = !audiencePlan?.predicate;
+    audienceMessage(audienceDataset ? 'Dataset ready. Use Verified classification or review an AI Direct plan.' : 'Choose a supported dataset to begin.');
   }
   async function uploadAudience(e) {
     e.preventDefault(); if (!workspace) return;
@@ -132,9 +134,37 @@
     audienceMessage('Uploading dataset to the isolated workspace…');
     try {
       const result = await apiForm('/workspaces/' + encodeURIComponent(workspace) + '/audience/datasets', form);
-      audienceDataset = result.dataset_id;
-      audienceMessage('Dataset uploaded. It is ready for classification.');
-      el('m360-audience-start').disabled = false;
+      audienceDataset = result.dataset_id; audiencePlan = null;
+      el('m360-audience-plan-preview').hidden = true;
+      audienceMessage('Dataset uploaded. It is ready for classification or safe AI Direct planning.');
+      el('m360-audience-start').disabled = false; el('m360-audience-plan').disabled = false; el('m360-audience-start-ai').disabled = true;
+    } catch (e) { audienceMessage(errorMessage(e), true); }
+  }
+  function renderAudiencePlan(plan) {
+    const node = el('m360-audience-plan-preview'); if (!node) return;
+    node.hidden = false; node.textContent = JSON.stringify({ predicate: plan.predicate, explanation: plan.segment_explanation, unknown_conditions: plan.unknown_conditions, warnings: plan.warnings }, null, 2);
+  }
+  async function suggestAudiencePlan() {
+    if (!workspace || !audienceDataset) return;
+    const objective = el('m360-audience-objective').value.trim();
+    if (objective.length < 3) return audienceMessage('Describe the audience segment first.', true);
+    audienceMessage('Creating a schema-bound plan; no source rows are sent to AI…');
+    try {
+      const scope = '/workspaces/' + encodeURIComponent(workspace) + '/audience';
+      audiencePlan = await api(scope + '/datasets/' + encodeURIComponent(audienceDataset) + '/ai-direct/plan', 'POST', { objective });
+      renderAudiencePlan(audiencePlan);
+      el('m360-audience-start-ai').disabled = !audiencePlan.predicate;
+      audienceMessage(audiencePlan.predicate ? 'Review the proposed filters, then explicitly approve processing.' : 'No safe executable filter was inferred; use observed source fields.');
+    } catch (e) { audienceMessage(errorMessage(e), true); }
+  }
+  async function startAiAudienceJob() {
+    if (!workspace || !audienceDataset || !audiencePlan?.predicate) return;
+    const key = globalThis.crypto && crypto.randomUUID ? crypto.randomUUID() : 'aud-ai-' + Date.now() + '-' + Math.random().toString(36).slice(2);
+    audienceMessage('Submitting the approved AI Direct plan to the deterministic engine…');
+    try {
+      const result = await api('/workspaces/' + encodeURIComponent(workspace) + '/audience/jobs', 'POST', { dataset_id: audienceDataset, idempotency_key: key, client_profiles: ['lakhotia','shree','vrindavan'], filter_plan: audiencePlan.predicate, audience_plan: audiencePlan });
+      audienceMessage('AI Direct job ' + (result.job_id || 'queued') + ' started. Refresh to see progress and exports.');
+      await loadAudience();
     } catch (e) { audienceMessage(errorMessage(e), true); }
   }
   async function startAudienceJob() {
@@ -177,6 +207,8 @@
   });
   el('m360-refresh').addEventListener('click', () => loadWorkspace().catch(e => message(errorMessage(e), true)));
   el('m360-audience-refresh').addEventListener('click', () => loadAudience().catch(e => audienceMessage(errorMessage(e), true)));
+  el('m360-audience-plan').addEventListener('click', suggestAudiencePlan);
+  el('m360-audience-start-ai').addEventListener('click', startAiAudienceJob);
   el('m360-audience-upload-form').addEventListener('submit', uploadAudience);
   el('m360-audience-start').addEventListener('click', startAudienceJob);
   if (!base) message('CRM API not configured. Prototype sections elsewhere remain illustrative.', true);
