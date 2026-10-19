@@ -9,6 +9,7 @@ assert.match(page,/href="index\.html"/,'Guest route must lead to public pages');
 assert.match(js,/API='https:\/\/matrix360-crm-backend-p9os\.onrender\.com'/);
 assert.match(js,/let token=null,workspace=null,memberships=\[\],stages=\[\],version=0,authVersion=0/);
 assert.match(js,/function signOut\(\)\{\+\+authVersion;\+\+version;token=null/);
+assert.match(js,/\$\('signOut'\)\.onclick=\(\)=>\{const oldToken=token;signOut\(\)/,'Logout must invalidate the local session before network I/O');
 assert.match(js,/const attempt=\+\+authVersion/);
 assert.ok((js.match(/if\(attempt!==authVersion\)return/g)||[]).length>=3,'Pending login must be invalidated at each asynchronous boundary');
 assert.match(js,/if\(!Array\.isArray\(ms\)\|\|ms\.length===0\)throw Error/);
