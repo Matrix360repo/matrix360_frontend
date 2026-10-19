@@ -150,7 +150,7 @@ try {
       await page.waitForFunction(()=>document.getElementById('m360-status')?.textContent==='Stage updated');
       assert(c.stats().leadCreateCount===1 && c.stats().leadPatchCount===1);
       await page.locator('#m360-logout').click();
-      assert(await page.locator('#m360-login-box').isVisible());
+      await page.locator('#m360-login-box').waitFor({state:'visible'});
       assert(await page.locator('#m360-goal-nav').isHidden());
       assert(c.errors.length===0,'browser errors: '+c.errors.join(' / '));
     }finally{await c.context.close();}
