@@ -15,6 +15,7 @@ w.fetch=async (url,options={})=>{
  if(path==='/auth/login')return response(200,{access_token:'synthetic-token'});
  if(path==='/me/workspaces')return response(200,[{id:'lakhotia',name:'Lakhotia',role:'client_admin'}]);
  if(path==='/workspaces/lakhotia/stages')return response(200,['enquiry','qualified']);
+ if(path==='/workspaces/lakhotia/assistant/ask'&&method==='POST')return response(200,{answer:'Verified social metrics are not connected for this workspace.',response_source:'capability_registry',evidence:[{workspace_id:'lakhotia'}],ai_model_used:false});
  if(path==='/workspaces/lakhotia/channel-status')return response(200,{workspace_id:'lakhotia',crm:{status:'connected'},channels:{whatsapp:{status:'not_connected'},instagram:{status:'not_connected'},email:{status:'not_connected'}}});
  if(path==='/workspaces/lakhotia/leads'&&method==='GET')return response(200,leads);
  if(path==='/workspaces/lakhotia/leads/1'&&method==='PATCH'){leads=[{...leads[0],stage:JSON.parse(options.body).stage}];return response(200,{ok:true});}
@@ -33,7 +34,9 @@ const wait=()=>new Promise(resolve=>setTimeout(resolve,25));
  assert.ok(calls.some(x=>x.path==='/workspaces/lakhotia/channel-status'),'Frontend must fetch real backend status contract');
  doc.getElementById('assistantQuestion').value='How are my WhatsApp campaigns doing?';
  doc.getElementById('assistantForm').dispatchEvent(new w.Event('submit',{cancelable:true}));
- assert.match(doc.getElementById('assistantAnswer').textContent,/not currently available/);
+ await wait();
+ assert.match(doc.getElementById('assistantAnswer').textContent,/not connected/);
+ assert.ok(calls.some(x=>x.path==='/workspaces/lakhotia/assistant/ask'&&x.method==='POST'));
  const select=doc.querySelector('#leadRows select');
  select.value='qualified';
  select.dispatchEvent(new w.Event('change',{bubbles:true}));
