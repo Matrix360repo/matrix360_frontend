@@ -290,6 +290,7 @@
     loadCopilotCapabilities().catch(e => copilotMessage(errorMessage(e), true));
   }
   function renderLeads(leads, seq) {
+    const renderWorkspace = workspace; // Freeze row authority at render time, never take it from mutable selection.
     const body = el('m360-leads'); body.replaceChildren();
     for (const lead of leads) {
       const tr = document.createElement('tr');
@@ -302,8 +303,9 @@
       for (const stage of validStages) select.add(new Option(stage.replaceAll('_',' '), stage));
       select.value = lead.stage;
       select.addEventListener('change', async () => {
+        if (seq !== generation || renderWorkspace !== workspace) return; // Stale row cannot write into a new tenant.
         select.disabled = true;
-        const activeWorkspace = workspace;
+        const activeWorkspace = renderWorkspace;
         try {
           await api('/workspaces/' + encodeURIComponent(activeWorkspace) + '/leads/' + encodeURIComponent(lead.id), 'PATCH', { stage: select.value });
           if (seq === generation) { message('Stage updated'); await loadWorkspace(); }
