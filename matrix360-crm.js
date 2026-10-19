@@ -6,12 +6,22 @@
   const el = id => root.querySelector('#' + id);
   const config = window.MATRIX360_CRM_CONFIG || {};
   const base = String(config.apiBase || '').replace(/\/+$/, '');
-  let token = null, workspace = null, generation = 0, memberships = [], validStages = [];
+  let token = null, workspace = null, generation = 0, memberships = [], validStages = [], audienceDataset = null;
   const errorMessage = e => (e instanceof Error ? e.message : String(e));
   function message(text, isError = false) {
     const node = el('m360-status'); if (!node) return;
     node.textContent = text;
     node.style.color = isError ? '#a32936' : '#17665c';
+  }
+  async function apiForm(path, form) {
+    if (!base) throw new Error('CRM API has not been configured for this environment.');
+    const headers = { ...(token ? { Authorization: 'Bearer ' + token } : {}) };
+    let response;
+    try { response = await fetch(base + path, { method: 'POST', headers, body: form, cache:'no-store' }); }
+    catch { throw new Error('CRM API unreachable. Check API URL, backend, CORS and HTTPS.'); }
+    let data; try { data = await response.json(); } catch { data = null; }
+    if (!response.ok) throw new Error((data && typeof data.detail === 'string' ? data.detail : 'API error ' + response.status));
+    return data;
   }
   async function api(path, method = 'GET', body) {
     if (!base) throw new Error('CRM API has not been configured for this environment.');
@@ -60,6 +70,7 @@
     for (const stage of stages) stageSelect.add(new Option(stage.replaceAll('_', ' '), stage));
     renderLeads(leads, seq);
     el('m360-count').textContent = leads.length + ' recorded lead(s) — verified API records';
+    loadAudience().catch(e => audienceMessage(errorMessage(e), true));
   }
   function renderLeads(leads, seq) {
     const body = el('m360-leads'); body.replaceChildren();
@@ -85,6 +96,56 @@
       td.appendChild(select); tr.appendChild(td);
       body.appendChild(tr);
     }
+  }
+  function audienceMessage(text, isError = false) {
+    const node = el('m360-audience-status'); if (!node) return;
+    node.textContent = text; node.style.color = isError ? '#a32936' : '#17665c';
+  }
+  function renderAudienceJobs(jobs) {
+    const body = el('m360-audience-jobs'); if (!body) return; body.replaceChildren();
+    for (const job of jobs) {
+      const tr = document.createElement('tr');
+      for (const value of [job.dataset_name || job.dataset_id || '—', job.id || '—', job.status || '—', job.progress_percent == null ? '—' : String(job.progress_percent) + '%']) tr.appendChild(element('td', value));
+      body.appendChild(tr);
+    }
+  }
+  async function loadAudience() {
+    if (!workspace || !el('m360-audience-box')) return;
+    const scope = '/workspaces/' + encodeURIComponent(workspace) + '/audience';
+    const status = await api(scope + '/status');
+    el('m360-audience-box').hidden = false;
+    if (!status.configured) {
+      audienceMessage('Audience Engine is not configured for this CRM environment.', true);
+      el('m360-audience-start').disabled = true;
+      renderAudienceJobs([]); return;
+    }
+    const jobs = await api(scope + '/jobs');
+    renderAudienceJobs(Array.isArray(jobs.jobs) ? jobs.jobs : []);
+    el('m360-audience-start').disabled = !audienceDataset;
+    audienceMessage(audienceDataset ? 'Dataset ready. Review the default client profiles, then start classification.' : 'Choose a supported dataset to begin.');
+  }
+  async function uploadAudience(e) {
+    e.preventDefault(); if (!workspace) return;
+    const input = el('m360-audience-files');
+    if (!input.files || !input.files.length) return audienceMessage('Choose at least one dataset file.', true);
+    const form = new FormData(); for (const file of input.files) form.append('files', file, file.name);
+    audienceMessage('Uploading dataset to the isolated workspace…');
+    try {
+      const result = await apiForm('/workspaces/' + encodeURIComponent(workspace) + '/audience/datasets', form);
+      audienceDataset = result.dataset_id;
+      audienceMessage('Dataset uploaded. It is ready for classification.');
+      el('m360-audience-start').disabled = false;
+    } catch (e) { audienceMessage(errorMessage(e), true); }
+  }
+  async function startAudienceJob() {
+    if (!workspace || !audienceDataset) return;
+    const key = globalThis.crypto && crypto.randomUUID ? crypto.randomUUID() : 'aud-' + Date.now() + '-' + Math.random().toString(36).slice(2);
+    audienceMessage('Starting classification job…');
+    try {
+      const result = await api('/workspaces/' + encodeURIComponent(workspace) + '/audience/jobs', 'POST', { dataset_id: audienceDataset, idempotency_key: key, client_profiles: ['lakhotia','shree','vrindavan'] });
+      audienceMessage('Classification job ' + (result.job_id || 'queued') + ' started. Refresh to see progress and exports.');
+      await loadAudience();
+    } catch (e) { audienceMessage(errorMessage(e), true); }
   }
   async function signIn(e) {
     e.preventDefault(); message('Signing in...');
@@ -115,5 +176,8 @@
     try { if (token) await api('/auth/logout', 'POST'); } catch {} finally { reset(); message('Signed out.'); }
   });
   el('m360-refresh').addEventListener('click', () => loadWorkspace().catch(e => message(errorMessage(e), true)));
+  el('m360-audience-refresh').addEventListener('click', () => loadAudience().catch(e => audienceMessage(errorMessage(e), true)));
+  el('m360-audience-upload-form').addEventListener('submit', uploadAudience);
+  el('m360-audience-start').addEventListener('click', startAudienceJob);
   if (!base) message('CRM API not configured. Prototype sections elsewhere remain illustrative.', true);
 })();
