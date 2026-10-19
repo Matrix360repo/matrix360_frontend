@@ -110,7 +110,8 @@ async function session(browser, identity, mobile=false) {
   });
   const errors=[];page.on('pageerror',e=>errors.push(e.message));
   await page.goto(appUrl,{waitUntil:'domcontentloaded'});
-  await page.evaluate(()=>openApp('crm'));
+  // Exercise the actual public CTA; do not bypass navigation with JavaScript.
+  await page.getByRole('button',{name:'Open private client workspace →'}).click();
   await page.locator('#m360-login-form').waitFor({state:'visible'});
   await page.locator('#m360-username').fill(identity+'@synthetic.invalid');
   await page.locator('#m360-password').fill('synthetic-no-secret');
