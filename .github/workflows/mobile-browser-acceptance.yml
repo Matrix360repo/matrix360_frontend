@@ -1,0 +1,38 @@
+name: P0 Chromium mobile browser acceptance
+on:
+  push:
+    branches: [feat/mobile-intent-accessibility-p0-20261020]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  synthetic-browser-journey:
+    runs-on: ubuntu-latest
+    timeout-minutes: 14
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install isolated Chromium test dependency
+        run: |
+          npm install --no-save --ignore-scripts playwright@1.56.1
+          npx playwright install --with-deps chromium
+      - name: Start isolated local web preview
+        run: |
+          python3 -m http.server 4173 --bind 127.0.0.1 > /tmp/m360-browser-http.log 2>&1 &
+          for i in $(seq 1 20); do curl -fsS http://127.0.0.1:4173/app.html >/dev/null && exit 0; sleep 1; done
+          cat /tmp/m360-browser-http.log
+          exit 1
+      - name: Verify 390px / 768px / 1440px browser flows against synthetic API
+        run: node tests/mobile-browser-acceptance.cjs
+      - name: Upload synthetic browser screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: mobile-synthetic-browser-evidence
+          path: tests/evidence/*.png
+          if-no-files-found: ignore
+          retention-days: 7
