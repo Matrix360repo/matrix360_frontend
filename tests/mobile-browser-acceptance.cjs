@@ -103,7 +103,10 @@ async function run(browser, scenario) {
     await page.keyboard.press('Escape');
     assert.equal(await drawerButton.getAttribute('aria-expanded'), 'false');
     await drawerButton.click();
-    await page.locator('#m360-app-menu-scrim').click({ position: { x: scenario.viewport.width - 12, y: 40 } });
+    const scrim = page.locator('#m360-app-menu-scrim');
+    const bounds = await scrim.boundingBox();
+    assert(bounds && bounds.width > 100, 'Mobile scrim must cover the app area');
+    await scrim.click({ position: { x: bounds.width - 12, y: 40 } });
     assert.equal(await drawerButton.getAttribute('aria-expanded'), 'false');
   } else {
     assert(!(await drawerButton.isVisible()), 'Desktop must retain original navigation');
