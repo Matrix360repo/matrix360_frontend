@@ -1,8 +1,8 @@
 /* Matrix 360 client access pilot: in-memory credentials only; no client session is trusted from localStorage. */
-(()=>{'use strict';const $=id=>document.getElementById(id);const API='https://matrix360-crm-backend-p9os.onrender.com';let token=null,workspace=null,memberships=[],stages=[],version=0,authVersion=0,lastLeads=null,channelStatus=null;
+(()=>{'use strict';const $=id=>document.getElementById(id);const API='https://matrix360-crm-backend-p9os.onrender.com';let token=null,workspace=null,memberships=[],stages=[],version=0,authVersion=0,lastLeads=null,channelStatus=null,approvalVersion=0;
 const msg=(id,text,error=false)=>{const el=$(id);el.textContent=text;el.style.color=error?'#ac342e':'#0b7162'};
 async function request(path,method='GET',body){const headers={...(token?{Authorization:'Bearer '+token}:{})};if(body!==undefined)headers['Content-Type']='application/json';let res;try{res=await fetch(API+path,{method,headers,cache:'no-store',body:body===undefined?undefined:JSON.stringify(body)});}catch{throw Error('Service temporarily unreachable. Please try again later.')}let value=null;try{value=await res.json()}catch{}if(res.status===401&&token){signOut();throw Error('Your session expired. Please sign in again.')}if(!res.ok)throw Error(typeof value?.detail==='string'?value.detail:'Service error '+res.status);return value}
-function signOut(){++authVersion;++version;token=null;workspace=null;lastLeads=null;channelStatus=null;memberships=[];stages=[];$('password').value='';$('leadRows').replaceChildren();document.body.classList.remove('authed');history.replaceState(null,'',location.pathname);}
+function signOut(){++authVersion;++version;++approvalVersion;token=null;workspace=null;lastLeads=null;channelStatus=null;memberships=[];stages=[];$('approvalPanel').hidden=true;$('approvalRows').replaceChildren();$('password').value='';$('leadRows').replaceChildren();document.body.classList.remove('authed');history.replaceState(null,'',location.pathname);}
 async function load(){const id=$('workspace').value;if(!memberships.some(x=>x.id===id))throw Error('Workspace not authorized');workspace=id;lastLeads=null;channelStatus=null;const v=++version;const url='/workspaces/'+encodeURIComponent(id);const [s,l,status]=await Promise.all([request(url+'/stages'),request(url+'/leads'),request(url+'/channel-status')]);if(v!==version)return;if(!Array.isArray(s)||!Array.isArray(l))throw Error('Unexpected data format');if(status?.workspace_id!==id||status?.crm?.status!=='connected')throw Error('CRM connection status could not be verified');stages=s;lastLeads=l;channelStatus=status;$('leadStage').replaceChildren(...s.map(x=>new Option(x.replaceAll('_',' '),x)));const body=$('leadRows');body.replaceChildren();for(const lead of l){const row=document.createElement('tr');for(const x of [lead.name,lead.source||'—',lead.stage]){const td=document.createElement('td');td.textContent=x||'—';row.appendChild(td)}const td=document.createElement('td');const sel=document.createElement('select');sel.setAttribute('aria-label','Update stage for '+lead.name);for(const st of s)sel.add(new Option(st.replaceAll('_',' '),st));sel.value=lead.stage;sel.addEventListener('change',async()=>{sel.disabled=true;try{await request(url+'/leads/'+encodeURIComponent(lead.id),'PATCH',{stage:sel.value});await load();msg('clientStatus','Lead stage updated')}catch(e){msg('clientStatus',e.message,true)}finally{sel.disabled=false}});td.appendChild(sel);row.appendChild(td);body.appendChild(row)}$('leadCount').textContent=l.length+' lead(s) from the selected authorized workspace.';msg('clientStatus','Workspace loaded.')}
 $('signInTab').onclick=()=>{ $('loginForm').hidden=false;$('signup').hidden=true;$('signInTab').setAttribute('aria-selected','true');$('signUpTab').setAttribute('aria-selected','false')};$('signUpTab').onclick=()=>{$('loginForm').hidden=true;$('signup').hidden=false;$('signInTab').setAttribute('aria-selected','false');$('signUpTab').setAttribute('aria-selected','true')};
 $('resendForm').onsubmit=async e=>{
@@ -46,7 +46,53 @@ $('registerForm').onsubmit=async e=>{
     button.disabled=false;
   }
 };
-$('loginForm').onsubmit=async e=>{e.preventDefault();const attempt=++authVersion;$('submitLogin').disabled=true;msg('loginStatus','Checking your account…');try{const auth=await request('/auth/login','POST',{username:$('userName').value.trim(),password:$('password').value});if(attempt!==authVersion)return;if(!auth?.access_token)throw Error('Login response did not contain a session token');token=auth.access_token;const ms=await request('/me/workspaces');if(attempt!==authVersion)return;if(!Array.isArray(ms)||ms.length===0)throw Error('No approved client workspace was found for this account.');memberships=ms;$('workspace').replaceChildren(...ms.map(m=>new Option(m.name,m.id)));await load();if(attempt!==authVersion)return;$('password').value='';document.body.classList.add('authed');history.replaceState(null,'',location.pathname+'#workspace');$('crmWork').scrollIntoView({block:'nearest'});}catch(err){if(attempt===authVersion){signOut();$('submitLogin').disabled=false;msg('loginStatus',err.message,true)}}finally{if(attempt===authVersion)$('submitLogin').disabled=false}};
+async function loadApprovals(){
+  const current=++approvalVersion;
+  const data=await request('/admin/registration-requests');
+  if(current!==approvalVersion||!token)return;
+  if(!data||!Array.isArray(data.pending)||!Array.isArray(data.approvable_workspaces))
+    throw Error('Invalid administrator review response');
+  const tbody=$('approvalRows');tbody.replaceChildren();
+  if(!data.pending.length){
+    msg('approvalStatus','No pending client registrations.');return;
+  }
+  const spaces=data.approvable_workspaces;
+  for(const applicant of data.pending){
+    const row=document.createElement('tr');
+    for(const value of [applicant.full_name||'Unnamed applicant',applicant.company_name||'Unspecified business']){
+      const cell=document.createElement('td');cell.textContent=value;row.appendChild(cell);
+    }
+    const workCell=document.createElement('td'),choose=document.createElement('select');
+    choose.setAttribute('aria-label','Assign workspace for '+(applicant.full_name||'applicant'));
+    for(const id of spaces)choose.add(new Option(id.replaceAll('_',' '),id));
+    workCell.appendChild(choose);row.appendChild(workCell);
+    const actions=document.createElement('td');
+    for(const [label,decision] of [['Approve',true],['Reject',false]]){
+      const button=document.createElement('button');button.type='button';button.className='btn';
+      button.textContent=label;button.style.margin='2px';
+      button.addEventListener('click',async()=>{
+        const selected=choose.value;
+        const verb=decision?'approve':'reject';
+        if(!window.confirm('Confirm '+verb+' for '+(applicant.full_name||'this applicant')+
+          (decision?' in workspace '+selected:'')+'?'))return;
+        button.disabled=true;
+        try{
+          const output=await request('/admin/registration-requests/review','POST',{
+            user_id:applicant.user_id,workspace_id:selected,approve:decision});
+          if(output?.status!==(decision?'approved':'rejected'))throw Error('Unexpected approval response');
+          await loadApprovals();
+          msg('approvalStatus','Registration '+output.status+'.');
+        }catch(err){msg('approvalStatus',err.message,true)}
+        finally{button.disabled=false}
+      });
+      actions.appendChild(button);
+    }
+    row.appendChild(actions);tbody.appendChild(row);
+  }
+  msg('approvalStatus',data.pending.length+' pending registrations. Verify business identity before approval.');
+}
+$('refreshApprovals').onclick=()=>loadApprovals().catch(err=>msg('approvalStatus',err.message,true));
+$('loginForm').onsubmit=async e=>{e.preventDefault();const attempt=++authVersion;$('submitLogin').disabled=true;msg('loginStatus','Checking your account…');try{const auth=await request('/auth/login','POST',{username:$('userName').value.trim(),password:$('password').value});if(attempt!==authVersion)return;if(!auth?.access_token)throw Error('Login response did not contain a session token');token=auth.access_token;const ms=await request('/me/workspaces');if(attempt!==authVersion)return;if(!Array.isArray(ms)||ms.length===0){const registration=await request('/me/registration');if(attempt!==authVersion)return;throw Error(registration?.status==='pending'?'Your account is registered but awaiting administrator approval.':registration?.status==='rejected'?'Your access request was not approved. Contact Matrix 360 support.':'No approved client workspace was found for this account.');}memberships=ms;$('workspace').replaceChildren(...ms.map(m=>new Option(m.name,m.id)));await load();if(attempt!==authVersion)return;const isAdmin=ms.some(m=>['platform_owner','agency_admin'].includes(m.role));$('approvalPanel').hidden=!isAdmin;if(isAdmin)loadApprovals().catch(err=>msg('approvalStatus',err.message,true));if(attempt!==authVersion)return;$('password').value='';document.body.classList.add('authed');history.replaceState(null,'',location.pathname+'#workspace');$('crmWork').scrollIntoView({block:'nearest'});}catch(err){if(attempt===authVersion){signOut();$('submitLogin').disabled=false;msg('loginStatus',err.message,true)}}finally{if(attempt===authVersion)$('submitLogin').disabled=false}};
 $('workspace').onchange=()=>load().catch(e=>msg('clientStatus',e.message,true));$('refresh').onclick=()=>load().catch(e=>msg('clientStatus',e.message,true));$('goCrm').onclick=()=>$('crmWork').scrollIntoView({behavior:'smooth'});$('signOut').onclick=()=>{const oldToken=token;signOut();if(oldToken){fetch(API+'/auth/logout',{method:'POST',headers:{Authorization:'Bearer '+oldToken},cache:'no-store'}).catch(()=>{});}};$('leadForm').onsubmit=async e=>{e.preventDefault();if(!workspace)return;try{await request('/workspaces/'+encodeURIComponent(workspace)+'/leads','POST',{name:$('leadName').value.trim(),source:$('leadSource').value.trim()||null,stage:$('leadStage').value});$('leadForm').reset();await load();msg('clientStatus','Lead saved.')}catch(err){msg('clientStatus',err.message,true)}};
 
 /* Scoped, deterministic pilot assistant. Never fabricates external metrics or calls a model. */

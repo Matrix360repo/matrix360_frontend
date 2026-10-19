@@ -1,0 +1,20 @@
+name: Client onboarding reviewer frontend
+on:
+  push:
+    branches: [feature/client-approval-workflow]
+permissions:
+  contents: read
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 7
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: node --check client-access.js
+      - run: node tests/client-approval-contract.cjs
+      - run: npm install --no-save --no-audit --no-fund jsdom@26
+      - run: node tests/synthetic-crm-journey.cjs
+      - run: node tests/synthetic-tenant-isolation.cjs
