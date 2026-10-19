@@ -165,9 +165,13 @@ try {
       await page.locator('#m360-assistant-goal').fill('Plan manufacturing outreach');
       await page.locator('#m360-assistant-form button[type=submit]').click();
       await page.getByText('Proposed plan — REVIEW ONLY').waitFor();
+      const staleLeadControl = await page.locator('select[aria-label="Stage for Synthetic Prospect"]').elementHandle();
       await page.locator('#m360-workspace').selectOption('shree');
       await page.locator('#m360-assistant-business').getByText('Shree Heights').waitFor();
       assert(await page.locator('#m360-assistant-preview').isHidden(),'old tenant plan must be cleared');
+      // Simulate a delayed interaction with an old, now detached lead row.
+      await page.evaluate(control => { control.value='qualified';control.dispatchEvent(new Event('change',{bubbles:true})); }, staleLeadControl);
+      assert(c.stats().leadPatchCount===0,'stale row must not write to another business');
       await page.screenshot({path:path.join(artifacts,'director-desktop.png'),fullPage:true});
       assert(c.errors.length===0,'browser errors: '+c.errors.join(' / '));
     }finally{await c.context.close();}
