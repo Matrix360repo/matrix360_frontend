@@ -36,33 +36,30 @@ $('workspace').onchange=()=>load().catch(e=>msg('clientStatus',e.message,true));
 /* Scoped, deterministic pilot assistant. Never fabricates external metrics or calls a model. */
 const answer=(value)=>{ $('assistantAnswer').textContent=value; };
 const showPlanner=(show)=>{ $('budgetPlanner').hidden=!show; };
-function respondToQuestion(question){
+async function respondToQuestion(question){
   if(!token||!workspace){answer('Sign in and select an authorized client workspace first.');return;}
-  const q=question.toLowerCase().trim();
+  const q=question.trim();
   if(!q){answer('Enter a question about your CRM or campaign planning.');return;}
-  if(/\b(budget|reallocat|allocat|calculator|calculate|spend|investment)\b/.test(q)){
+  if(/\\b(budget|reallocat|allocat|calculator|calculate|spend|investment)\\b/i.test(q)){
     showPlanner(true);
-    answer('Use the calculator below to compare a proposed transfer between two channels. This does not estimate campaign results or spend money.');
+    answer('Use the conservative planning calculator below. It changes no advertising budgets and does not estimate results.');
     return;
   }
   showPlanner(false);
-  if(/linkedin|instagram|facebook|meta ads|google ads|youtube|social|campaign|impressions|engagement|clicks|roas|cpc|ctr|email|newsletter|whatsapp|messaging|website|analytics/.test(q)){
-    const names=Object.entries(channelStatus?.channels||{}).filter(([,status])=>status.status!=='connected').map(([name])=>name.replaceAll('_',' '));
-    answer('Live cross-channel reporting is not currently available for '+workspace+'. '+(names.length?'Not connected: '+names.join(', ')+'. ':'No verified channel integration statuses loaded. ')+'I cannot verify spend, delivery, reach, clicks, conversions, CPL or ROI. Connect and authorize each data provider before relying on channel performance comparisons.');
-    return;
+  const requestVersion=version,requestWorkspace=workspace;
+  answer('Checking approved workspace data…');
+  try{
+    const result=await request('/workspaces/'+encodeURIComponent(requestWorkspace)+'/assistant/ask','POST',{question:q});
+    if(requestVersion!==version||requestWorkspace!==workspace||!token)return;
+    if(!result||typeof result.answer!=='string'||!['authorized_crm','capability_registry'].includes(result.response_source))
+      throw Error('The assistant returned an unverified response');
+    const evidence=Array.isArray(result.evidence)?result.evidence:[];
+    if(!evidence.some(e=>e&&e.workspace_id===requestWorkspace))throw Error('The assistant response is missing workspace evidence');
+    answer(result.answer+'\\n\\nSource: '+(result.response_source==='authorized_crm'?'Your authorized CRM records':'Workspace integration availability')+'. AI model usage: none.');
+  }catch(err){
+    if(requestVersion===version&&requestWorkspace===workspace&&token)
+      answer('I could not verify a response from the CRM service. '+err.message);
   }
-  if(/lead|pipeline|crm|opportunit|enquir|qualif|stage/.test(q)){
-    if(!Array.isArray(lastLeads)){answer('CRM records are not loaded yet. Select an authorized workspace and use Refresh.');return;}
-    const counts={}; for(const lead of lastLeads)counts[lead.stage]=(counts[lead.stage]||0)+1;
-    const breakdown=Object.keys(counts).sort().map(k=>k.replaceAll('_',' ')+': '+counts[k]).join(' · ');
-    answer('Verified CRM API records for your selected workspace: '+lastLeads.length+' lead(s).'+(breakdown?'\nStage breakdown: '+breakdown:'')+'\nThis is a current lead count, not an advertising conversion or attribution report.');
-    return;
-  }
-  if(/connect|integration|available|module|service|tool/.test(q)){
-    answer('Connected: the selected authorized CRM workspace. Pending: Instagram, Facebook, LinkedIn, YouTube, Google Ads, email, WhatsApp, website analytics, Audience Engine, Campaign Engine and Content Studio. AI analysis remains disabled pending approved credentials, permissions and usage budget. The planner is offline and never changes spending.');
-    return;
-  }
-  answer('I can currently answer questions about loaded CRM leads, show connected-service status, and calculate an illustrative budget shift. I cannot provide free-form AI analysis or live marketing analytics until approved, tenant-authorized data and an AI answering service are connected.');
 }
 $('assistantForm').onsubmit=e=>{e.preventDefault();respondToQuestion($('assistantQuestion').value);};
 document.querySelectorAll('[data-question]').forEach(btn=>btn.addEventListener('click',()=>{

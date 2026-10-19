@@ -6,9 +6,9 @@ for(const id of ['assistantForm','assistantQuestion','assistantAnswer','budgetPl
 assert.match(html,/Social, email, WhatsApp and advertising analytics appear only when authenticated data connectors are verified/);
 assert.match(script,/lastLeads=l/);
 assert.match(script,/lastLeads=null/);
-assert.match(script,/Live cross-channel reporting is not currently available/);
+assert.match(script,/assistant\/ask/);
 assert.match(script,/shift>20\|\|shift>share/);
-assert.match(script,/Connect and authorize each data provider/);
+assert.match(script,/response_source==='authorized_crm'/);
 assert.doesNotMatch(script,/fetch\([^\n]+linkedin\.com/);
 assert.doesNotMatch(script,/innerHTML\s*=/);
 new vm.Script(script,{filename:'client-access.js'});
