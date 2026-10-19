@@ -5,6 +5,22 @@ async function request(path,method='GET',body){const headers={...(token?{Authori
 function signOut(){++authVersion;++version;token=null;workspace=null;lastLeads=null;channelStatus=null;memberships=[];stages=[];$('password').value='';$('leadRows').replaceChildren();document.body.classList.remove('authed');history.replaceState(null,'',location.pathname);}
 async function load(){const id=$('workspace').value;if(!memberships.some(x=>x.id===id))throw Error('Workspace not authorized');workspace=id;lastLeads=null;channelStatus=null;const v=++version;const url='/workspaces/'+encodeURIComponent(id);const [s,l,status]=await Promise.all([request(url+'/stages'),request(url+'/leads'),request(url+'/channel-status')]);if(v!==version)return;if(!Array.isArray(s)||!Array.isArray(l))throw Error('Unexpected data format');if(status?.workspace_id!==id||status?.crm?.status!=='connected')throw Error('CRM connection status could not be verified');stages=s;lastLeads=l;channelStatus=status;$('leadStage').replaceChildren(...s.map(x=>new Option(x.replaceAll('_',' '),x)));const body=$('leadRows');body.replaceChildren();for(const lead of l){const row=document.createElement('tr');for(const x of [lead.name,lead.source||'—',lead.stage]){const td=document.createElement('td');td.textContent=x||'—';row.appendChild(td)}const td=document.createElement('td');const sel=document.createElement('select');sel.setAttribute('aria-label','Update stage for '+lead.name);for(const st of s)sel.add(new Option(st.replaceAll('_',' '),st));sel.value=lead.stage;sel.addEventListener('change',async()=>{sel.disabled=true;try{await request(url+'/leads/'+encodeURIComponent(lead.id),'PATCH',{stage:sel.value});await load();msg('clientStatus','Lead stage updated')}catch(e){msg('clientStatus',e.message,true)}finally{sel.disabled=false}});td.appendChild(sel);row.appendChild(td);body.appendChild(row)}$('leadCount').textContent=l.length+' lead(s) from the selected authorized workspace.';msg('clientStatus','Workspace loaded.')}
 $('signInTab').onclick=()=>{ $('loginForm').hidden=false;$('signup').hidden=true;$('signInTab').setAttribute('aria-selected','true');$('signUpTab').setAttribute('aria-selected','false')};$('signUpTab').onclick=()=>{$('loginForm').hidden=true;$('signup').hidden=false;$('signInTab').setAttribute('aria-selected','false');$('signUpTab').setAttribute('aria-selected','true')};
+$('resendForm').onsubmit=async e=>{
+  e.preventDefault();
+  const email=$('resendEmail').value.trim(),button=$('resendButton');
+  if(!email||!e.target.reportValidity())return;
+  button.disabled=true;
+  msg('resendStatus','Requesting verification…');
+  try {
+    const reply=await request('/auth/resend-verification','POST',{email});
+    if(reply?.status!=='request_received')throw Error('Verification request was not acknowledged');
+    msg('resendStatus',reply.message || 'Request acknowledged. Check your inbox and Spam folder.');
+  } catch(err) {
+    msg('resendStatus',err.message,true);
+  } finally {
+    button.disabled=false;
+  }
+};
 $('registerForm').onsubmit=async e=>{
   e.preventDefault();
   const button=$('submitRegistration'),status=$('registerStatus');
