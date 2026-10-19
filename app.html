@@ -58,8 +58,9 @@ h1,h2,h3,h4{font-family:'Manrope','Inter',system-ui,sans-serif;letter-spacing:-.
 <label for="m360-audience-files">Dataset files</label><input class="formcontrol" id="m360-audience-files" type="file" accept=".csv,.tsv,.xlsx,.xls,.xlsb,.parquet,.jsonl,.ndjson" multiple required>
 <button class="btn primary" type="submit">Upload to Audience Engine</button>
 </form>
-<div class="actions"><button class="btn sm" id="m360-audience-refresh" type="button">Refresh jobs</button><button class="btn sm" id="m360-audience-start" type="button" disabled>Start classification</button></div>
-<p id="m360-audience-status" role="status" aria-live="polite"></p>
+<label for="m360-audience-objective">AI Direct objective (optional)</label><textarea class="formcontrol" id="m360-audience-objective" maxlength="600" placeholder="For example: West Bengal manufacturing companies in Howrah"></textarea>
+<div class="actions"><button class="btn sm" id="m360-audience-refresh" type="button">Refresh jobs</button><button class="btn sm" id="m360-audience-plan" type="button" disabled>Suggest filters</button><button class="btn sm" id="m360-audience-start" type="button" disabled>Start verified classification</button><button class="btn sm" id="m360-audience-start-ai" type="button" disabled>Approve plan and generate leads</button></div>
+<p id="m360-audience-status" role="status" aria-live="polite"></p><pre id="m360-audience-plan-preview" hidden></pre>
 <div class="tablewrap"><table><thead><tr><th>Dataset</th><th>Job</th><th>Status</th><th>Progress</th></tr></thead><tbody id="m360-audience-jobs"></tbody></table></div>
 </section><h3 style="margin-top:22px">Lead records</h3><p id="m360-count" aria-live="polite"></p>
 <div class="tablewrap"><table><thead><tr><th>ID</th><th>Lead</th><th>Source</th><th>Stage (select to update)</th></tr></thead><tbody id="m360-leads"></tbody></table></div>
