@@ -1,0 +1,21 @@
+name: Website login integration
+on:
+  push:
+    branches: [feature/website-login-entry-integration]
+  pull_request:
+    branches: [feature/client-gateway-session-hardening]
+permissions:
+  contents: read
+jobs:
+  website-routing:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Verify login and public demo links
+        run: node tests/website-login-contract.cjs
+      - name: Verify gateway script
+        run: node --check client-access.js
