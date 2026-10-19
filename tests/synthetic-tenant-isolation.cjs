@@ -34,7 +34,7 @@ async function login(x){x.d.getElementById('userName').value='fixture@example.te
  guest.dom.window.close();
  const denied=fixture('unapproved');await login(denied);
  assert.equal(denied.d.body.classList.contains('authed'),false,'No membership means no private dashboard');
- assert.equal(denied.calls.filter(x=>x.includes('/workspaces/')).length,1,'No private records read by unapproved user');
+ assert.equal(denied.calls.filter(x=>x.includes('/workspaces/')).length,0,'No private records read by unapproved user');
  denied.dom.window.close();
  const a=fixture('lakhotia');await login(a);
  assert.equal(a.d.querySelector('#leadRows').textContent.includes('lakhotia lead'),true);
