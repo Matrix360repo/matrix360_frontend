@@ -1,0 +1,22 @@
+name: P0 mobile intent and CRM regression
+on:
+  push:
+    branches: [feat/mobile-intent-accessibility-p0-20261020]
+  pull_request:
+    branches: [feat/ai-copilot-ui-20261020]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  static-and-mobile-contract:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Run mobile navigation, CRM and intent regression
+        run: node tests/mobile-intent-regression.cjs
