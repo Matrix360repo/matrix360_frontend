@@ -104,9 +104,14 @@ async function run(browser, scenario) {
     assert.equal(await drawerButton.getAttribute('aria-expanded'), 'false');
     await drawerButton.click();
     const scrim = page.locator('#m360-app-menu-scrim');
+    await page.locator('#appFrame').evaluate(el => el.scrollIntoView({ block: 'start', behavior: 'instant' }));
     const bounds = await scrim.boundingBox();
     assert(bounds && bounds.width > 100, 'Mobile scrim must cover the app area');
-    await scrim.click({ position: { x: bounds.width - 12, y: 40 } });
+    const x = bounds.x + bounds.width - 16;
+    const y = Math.max(105, bounds.y + 180);
+    const hit = await page.evaluate(({ x, y }) => document.elementFromPoint(x, y)?.id, { x, y });
+    assert.equal(hit, 'm360-app-menu-scrim', 'Backdrop must receive a touch below sticky navigation');
+    await page.mouse.click(x, y);
     assert.equal(await drawerButton.getAttribute('aria-expanded'), 'false');
   } else {
     assert(!(await drawerButton.isVisible()), 'Desktop must retain original navigation');
