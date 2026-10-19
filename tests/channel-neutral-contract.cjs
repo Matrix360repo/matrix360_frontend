@@ -1,0 +1,12 @@
+const assert=require('node:assert/strict'),fs=require('node:fs');
+const page=fs.readFileSync('login.html','utf8');
+const js=fs.readFileSync('client-access.js','utf8');
+assert.match(page,/Show my results across social, email and WhatsApp/);
+assert.doesNotMatch(page,/LinkedIn performance<\/button>/);
+assert.match(js,/request\(url\+'\/channel-status'\)/);
+assert.match(js,/status\?\.workspace_id!==id/);
+assert.match(js,/channelStatus=null/);
+for(const word of ['instagram','facebook','linkedin','youtube','google ads','email','whatsapp','website'])assert.ok(js.toLowerCase().includes(word));
+assert.match(js,/I cannot verify spend, delivery, reach, clicks, conversions, CPL or ROI/);
+assert.doesNotMatch(js,/innerHTML\s*=/);
+console.log('CRM tenant channel contract and neutral prompt checks passed');
