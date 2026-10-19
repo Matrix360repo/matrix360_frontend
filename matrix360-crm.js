@@ -7,6 +7,7 @@
   const config = window.MATRIX360_CRM_CONFIG || {};
   const base = String(config.apiBase || '').replace(/\/+$/, '');
   let token = null, workspace = null, generation = 0, memberships = [], validStages = [], audienceDataset = null, audiencePlan = null;
+  let audienceProfileIds = [], copilotRequestId = 0;
 
   // User-facing Copilot is a server-authorized, RULE-BASED PLAN PREVIEW until
   // a separately approved and tested AI model/tool orchestration is deployed.
@@ -53,8 +54,25 @@
     output.id = 'm360-assistant-preview';
     output.hidden = true;
     output.style.cssText = 'white-space:pre-line;background:#f2f7f7;padding:16px;border-radius:12px;margin-top:12px;color:#183b42';
+    const shortcuts = document.createElement('div');
+    shortcuts.className = 'actions';
+    shortcuts.setAttribute('aria-label', 'Suggested business goals');
+    shortcuts.style.cssText = 'display:flex;flex-wrap:wrap;gap:8px;margin:10px 0 14px';
+    for (const [caption, goal] of [
+      ['Find suitable customers', 'Find suitable West Bengal prospects for my business and explain the qualification criteria.'],
+      ['Plan a campaign', 'Prepare a campaign plan for my business, including audience evidence and approval requirements.'],
+      ['Improve follow-up', 'Help us prioritize our existing customer enquiries and plan a follow-up process.']
+    ]) {
+      const button = element('button', caption);
+      button.type = 'button';
+      button.className = 'btn sm';
+      button.addEventListener('click', () => { field.value = goal; field.focus(); });
+      shortcuts.appendChild(button);
+    }
+    const next = element('p', 'What happens next: enter a goal → review proposed steps → check evidence → decide whether to continue. Nothing runs from this plan.');
+    next.style.cssText = 'font-size:13px;color:#506775;margin:10px 0';
     form.append(label, field, submit);
-    section.append(eyebrow, heading, business, description, form, state, availability, output);
+    section.append(eyebrow, heading, business, description, shortcuts, form, next, state, availability, output);
     target.prepend(section);
     form.addEventListener('submit', submitCopilotGoal);
   }
@@ -66,20 +84,92 @@
     node.style.color = isError ? '#a32936' : '#17665c';
   }
 
+  const humanStatus = status => ({
+    AVAILABLE_PREVIEW_ONLY: 'Available: guidance only',
+    REVIEW_REQUIRED: 'Needs your review',
+    CONFIGURED_UNVERIFIED: 'Configured, not verified',
+    CONFIG_REQUIRED: 'Needs setup',
+    NOT_INTEGRATED: 'Not connected',
+    NOT_CONFIGURED: 'Not configured',
+    UNAVAILABLE: 'Unavailable',
+    DEMONSTRATED_SIMULATION: 'Simulation only'
+  })[status] || 'Status unverified';
+
   async function loadCopilotCapabilities() {
-    if (!workspace) return;
+    if (!workspace || !token) return;
+    const currentWorkspace = workspace, currentGeneration = generation;
     const caption = el('m360-assistant-capabilities');
-    const scope = '/workspaces/' + encodeURIComponent(workspace) + '/assistant/capabilities';
+    const scope = '/workspaces/' + encodeURIComponent(currentWorkspace) + '/assistant/capabilities';
     try {
       const data = await api(scope);
-      if (!Array.isArray(data.capabilities)) throw new Error('Invalid capability response');
-      const summary = data.capabilities.map(x => x.id.replaceAll('_',' ') + ': ' + x.status.replaceAll('_',' ').toLowerCase()).join(' · ');
-      if (caption) caption.textContent = summary;
+      if (currentWorkspace !== workspace || currentGeneration !== generation || !token) return;
+      if (data.workspace_id !== currentWorkspace || !Array.isArray(data.capabilities)) {
+        throw new Error('Capability response does not match the authorized business.');
+      }
+      if (caption) {
+        caption.replaceChildren();
+        for (const capability of data.capabilities) {
+          const note = element('p', String(capability.id || 'Capability').replaceAll('_', ' ') +
+            ' — ' + humanStatus(capability.status) + '. ' + String(capability.reason || ''));
+          note.style.cssText = 'margin:5px 0;font-size:13px;line-height:1.5';
+          caption.appendChild(note);
+        }
+      }
       copilotMessage('Rule-based planning preview available. No AI model or live campaign execution is connected.');
     } catch (error) {
-      if (caption) caption.textContent = 'This CRM deployment does not currently expose a verified Copilot service.';
-      copilotMessage('Copilot requires a reviewed backend deployment. Existing CRM features remain available.', true);
+      if (currentWorkspace !== workspace || currentGeneration !== generation || !token) return;
+      if (caption) caption.textContent = 'Copilot capabilities cannot be confirmed for this business.';
+      copilotMessage('Plan preview requires the reviewed CRM staging backend. Existing CRM functions remain separate. ' + errorMessage(error), true);
     }
+  }
+
+  function renderReviewedPlan(result) {
+    const output = el('m360-assistant-preview');
+    output.replaceChildren();
+    const title = element('h4', 'Proposed plan — REVIEW ONLY');
+    title.style.cssText = 'font-size:20px;margin:0 0 8px';
+    const status = element('p', 'RULE-BASED PREVIEW · NOT EXECUTED · NOT SAVED · NOT APPROVED');
+    status.style.cssText = 'font-size:12px;font-weight:700;color:#925f22';
+    const goal = element('p', 'Goal: ' + result.goal);
+    goal.style.cssText = 'font-size:15px;font-weight:650;margin:10px 0';
+    const boundary = element('p', 'Audience size: not checked. Lead eligibility: not verified. Campaign, image and video execution: not connected.');
+    boundary.style.cssText = 'background:#fff4e5;border-radius:8px;padding:10px 12px;margin:12px 0';
+    output.append(title, status, goal, boundary);
+    for (const [index, step] of result.steps.entries()) {
+      const section = document.createElement('section');
+      section.style.cssText = 'border-top:1px solid #c9dcd7;padding:13px 0';
+      const h = element('h5', (index + 1) + '. ' + step.title);
+      h.style.cssText = 'font-size:16px;margin:0 0 6px';
+      const state = element('p', humanStatus(step.status));
+      state.style.cssText = 'font-size:12px;font-weight:700;color:#865e27;margin:0 0 7px';
+      const description = element('p', String(step.detail || ''));
+      const evidence = element('p', 'Evidence required: ' +
+        (Array.isArray(step.evidence) && step.evidence.length ? step.evidence.join(' · ') : 'Not specified'));
+      evidence.style.cssText = 'font-size:13px;color:#49636a';
+      const noteLabel = element('label', 'Your review notes (this browser session only)');
+      noteLabel.style.cssText = 'display:block;font-size:13px;font-weight:700;margin-top:10px';
+      const note = document.createElement('textarea');
+      note.rows = 2;
+      note.maxLength = 500;
+      note.className = 'formcontrol';
+      note.placeholder = 'Edit the proposed step for your team. This does not approve or save it.';
+      note.setAttribute('aria-label', 'Review notes for ' + step.title);
+      section.append(h, state, description, evidence, noteLabel, note);
+      output.appendChild(section);
+    }
+    const limitations = document.createElement('section');
+    const h = element('h5', 'What is not verified');
+    h.style.cssText = 'font-size:16px;margin:12px 0';
+    limitations.append(h);
+    for (const item of result.limitations || []) {
+      const p = element('p', '• ' + item);
+      p.style.cssText = 'font-size:13px;color:#49636a';
+      limitations.appendChild(p);
+    }
+    const footer = element('p', 'Review notes are local and disappear when you sign out or switch businesses. There is no approval, execution or publishing action in this preview.');
+    footer.style.cssText = 'font-size:13px;font-weight:600;margin-top:12px';
+    output.append(limitations, footer);
+    output.hidden = false;
   }
 
   async function submitCopilotGoal(event) {
@@ -87,30 +177,30 @@
     if (!workspace || !token) return copilotMessage('Sign in to an authorized business first.', true);
     const value = el('m360-assistant-goal').value.trim();
     if (value.length < 3) return copilotMessage('Please describe a concrete business goal.', true);
+    const currentWorkspace = workspace, currentGeneration = generation, requestId = ++copilotRequestId;
     const button = el('m360-assistant-form').querySelector('button[type=submit]');
     button.disabled = true;
     const output = el('m360-assistant-preview');
-    output.hidden = true;
-    copilotMessage('Preparing a review-only plan without sending data to an AI model…');
+    output.replaceChildren(); output.hidden = true;
+    copilotMessage('Preparing a review-only plan. No dataset, message or provider is being contacted.');
     try {
-      const result = await api('/workspaces/' + encodeURIComponent(workspace) + '/assistant/preview', 'POST', { objective: value });
-      if (result.mode !== 'RULE_BASED_PREVIEW_ONLY' || result.executed !== false || !Array.isArray(result.steps)) throw new Error('Unexpected preview response');
-      const lines = [
-        'PLAN PREVIEW · NOT EXECUTED · NOT SAVED',
-        'Goal: ' + result.goal,
-        'Domain hint: ' + (result.domain_hint || 'unclassified'),
-        '',
-        ...result.steps.map((step, idx) => (idx + 1) + '. ' + step.title + ' [' + step.status.replaceAll('_',' ') + ']\n' + step.detail),
-        '',
-        'Limitations:',
-        ...(result.limitations || []).map(x => '• ' + x)
-      ];
-      output.textContent = lines.join('\n');
-      output.hidden = false;
-      copilotMessage('Review the proposed steps. This is guidance only; no action has been approved or executed.');
+      const result = await api('/workspaces/' + encodeURIComponent(currentWorkspace) + '/assistant/preview', 'POST', { objective: value });
+      if (currentWorkspace !== workspace || currentGeneration !== generation || requestId !== copilotRequestId || !token) return;
+      if (result.workspace_id !== currentWorkspace ||
+          result.mode !== 'RULE_BASED_PREVIEW_ONLY' ||
+          result.executed !== false || result.persisted !== false || result.approved !== false ||
+          !Array.isArray(result.steps) || !Array.isArray(result.limitations)) {
+        throw new Error('Plan preview response does not match the authorized business or review-only mode.');
+      }
+      renderReviewedPlan(result);
+      copilotMessage('Review the proposed steps and evidence. Notes stay in your browser only; nothing is approved or executed.');
     } catch (error) {
-      copilotMessage('Plan preview unavailable: ' + errorMessage(error), true);
-    } finally { button.disabled = false; }
+      if (currentWorkspace === workspace && currentGeneration === generation && requestId === copilotRequestId && token) {
+        copilotMessage('Plan preview unavailable: ' + errorMessage(error), true);
+      }
+    } finally {
+      if (requestId === copilotRequestId) button.disabled = false;
+    }
   }
 
   const errorMessage = e => (e instanceof Error ? e.message : String(e));
@@ -149,7 +239,7 @@
     el('m360-data-box').hidden = !active;
   }
   function reset() {
-    ++generation; token = null; workspace = null; memberships = []; validStages = [];
+    ++generation; ++copilotRequestId; token = null; workspace = null; memberships = []; validStages = []; audienceDataset = null; audiencePlan = null; audienceProfileIds = [];
     el('m360-password').value = '';
     el('m360-leads').replaceChildren();
     if (el('m360-assistant-preview')) el('m360-assistant-preview').hidden = true;
@@ -177,8 +267,11 @@
     await loadWorkspace();
   }
   async function loadWorkspace() {
-    ++generation;
+    ++generation; ++copilotRequestId;
     workspace = el('m360-workspace').value;
+    audienceDataset = null; audiencePlan = null; audienceProfileIds = [];
+    if (el('m360-assistant-preview')) { el('m360-assistant-preview').replaceChildren(); el('m360-assistant-preview').hidden = true; }
+    if (el('m360-assistant-capabilities')) el('m360-assistant-capabilities').replaceChildren();
     const member = memberships.find(x => x.id === workspace);
     if (el('m360-assistant-business') && member) el('m360-assistant-business').textContent = 'Your business: ' + member.name;
     if (!memberships.some(x => x.id === workspace)) throw new Error('Unauthorized workspace selection');
