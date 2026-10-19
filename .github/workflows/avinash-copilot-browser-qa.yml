@@ -1,0 +1,50 @@
+name: Avinash P0 — synthetic browser acceptance
+on:
+  pull_request:
+    branches: [feat/ai-copilot-ui-20261020]
+  workflow_dispatch:
+jobs:
+  copilot-browser:
+    name: Tenant-safe synthetic desktop and mobile
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: JavaScript syntax / static security contracts
+        run: |
+          node --check matrix360-crm.js
+          node --check tests/copilot-browser-acceptance.mjs
+          node - <<'NODE'
+          const fs=require('fs'),assert=require('node:assert/strict');
+          const s=fs.readFileSync('matrix360-crm.js','utf8');
+          const html=fs.readFileSync('app.html','utf8');
+          assert(s.includes('RULE_BASED_PREVIEW_ONLY'));
+          assert(s.includes('result.workspace_id !== currentWorkspace'));
+          assert(s.includes('authorized_client_profiles'));
+          assert(!s.includes("client_profiles: ['lakhotia','shree','vrindavan']"));
+          assert(s.includes('No AI model or live campaign execution'));
+          assert(s.includes("m360-crm-auth-changed"));
+          assert(html.includes('m360-goal-nav'));
+          assert(html.includes('demo-workspace-container'));
+          assert(html.includes('matrix360-crm-backend-p9os.onrender.com'));
+          assert(html.includes('m360-lead-form'));
+          console.log('Static auth, tenant, preview and gateway contract checks passed.');
+          NODE
+      - name: Install browser test dependency
+        run: npm install --no-save --ignore-scripts playwright@1.55.1
+      - name: Install Chromium for headless acceptance
+        run: npx playwright install --with-deps chromium
+      - name: Run synthetic browser cases, capturing screenshots and video
+        run: node tests/copilot-browser-acceptance.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: avinash-intent-first-synthetic-qa
+          path: artifacts/copilot-acceptance/
+          retention-days: 14
+          if-no-files-found: warn
