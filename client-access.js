@@ -64,7 +64,9 @@ async function loadApprovals(){
     }
     const workCell=document.createElement('td'),choose=document.createElement('select');
     choose.setAttribute('aria-label','Assign workspace for '+(applicant.full_name||'applicant'));
+    choose.add(new Option('Select client workspace…',''));
     for(const id of spaces)choose.add(new Option(id.replaceAll('_',' '),id));
+    choose.value=''; // Explicit workspace selection prevents cross-client mistakes.
     workCell.appendChild(choose);row.appendChild(workCell);
     const actions=document.createElement('td');
     for(const [label,decision] of [['Approve',true],['Reject',false]]){
@@ -72,6 +74,7 @@ async function loadApprovals(){
       button.textContent=label;button.style.margin='2px';
       button.addEventListener('click',async()=>{
         const selected=choose.value;
+        if(!selected){msg('approvalStatus','Select the intended client workspace before reviewing this registration.',true);choose.focus();return;}
         const verb=decision?'approve':'reject';
         if(!window.confirm('Confirm '+verb+' for '+(applicant.full_name||'this applicant')+
           (decision?' in workspace '+selected:'')+'?'))return;
