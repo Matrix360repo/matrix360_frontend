@@ -1,0 +1,20 @@
+name: Client workspace assistant verification
+on:
+  push:
+    branches: [feature/workspace-assistant-budget-planner]
+  pull_request:
+    branches: [feature/new-client-registration-form]
+permissions:
+  contents: read
+jobs:
+  assistant-contract:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Verify scoped assistant and conservative calculator
+        run: node tests/workspace-assistant-contract.cjs
+      - name: Syntax regression
+        run: node --check client-access.js
