@@ -272,6 +272,7 @@
     audienceDataset = null; audiencePlan = null; audienceProfileIds = [];
     if (el('m360-assistant-preview')) { el('m360-assistant-preview').replaceChildren(); el('m360-assistant-preview').hidden = true; }
     if (el('m360-assistant-capabilities')) el('m360-assistant-capabilities').replaceChildren();
+    if (el('m360-assistant-form')) el('m360-assistant-form').querySelector('button[type=submit]').disabled = false;
     const member = memberships.find(x => x.id === workspace);
     if (el('m360-assistant-business') && member) el('m360-assistant-business').textContent = 'Your business: ' + member.name;
     if (!memberships.some(x => x.id === workspace)) throw new Error('Unauthorized workspace selection');
@@ -326,23 +327,46 @@
   }
   async function loadAudience() {
     if (!workspace || !el('m360-audience-box')) return;
-    const scope = '/workspaces/' + encodeURIComponent(workspace) + '/audience';
-    const status = await api(scope + '/status');
-    el('m360-audience-box').hidden = false;
-    if (!status.configured) {
-      audienceMessage('Audience Engine is not configured for this CRM environment.', true);
-      el('m360-audience-start').disabled = true;
-      renderAudienceJobs([]); return;
+    const scopedWorkspace = workspace, seq = generation;
+    const panel = el('m360-audience-box');
+    panel.hidden = false;
+    audienceProfileIds = [];
+    for (const id of ['m360-audience-start', 'm360-audience-plan', 'm360-audience-start-ai']) el(id).disabled = true;
+    const uploadButton = el('m360-audience-upload-form').querySelector('button[type=submit]');
+    uploadButton.disabled = true;
+    audienceMessage('Checking the independently operated Audience Engine gateway…');
+    const scope = '/workspaces/' + encodeURIComponent(scopedWorkspace) + '/audience';
+    try {
+      const status = await api(scope + '/status');
+      if (seq !== generation || scopedWorkspace !== workspace || !token) return;
+      if (!status.configured) {
+        audienceMessage('NEEDS SETUP: The Audience Engine gateway is not configured. No audience processing or transfers can start.', true);
+        renderAudienceJobs([]); return;
+      }
+      if (status.workspace_id !== scopedWorkspace ||
+          !Array.isArray(status.authorized_client_profiles) ||
+          !status.authorized_client_profiles.length ||
+          !status.authorized_client_profiles.every(x => typeof x === 'string' && /^[a-z0-9][a-z0-9_-]{0,63}$/.test(x))) {
+        audienceMessage('NEEDS SETUP: No tenant-verified audience profile mapping was returned. Processing is locked to prevent another client’s data being selected.', true);
+        renderAudienceJobs([]); return;
+      }
+      audienceProfileIds = [...new Set(status.authorized_client_profiles)];
+      const jobs = await api(scope + '/jobs');
+      if (seq !== generation || scopedWorkspace !== workspace || !token) return;
+      renderAudienceJobs(Array.isArray(jobs.jobs) ? jobs.jobs : []);
+      uploadButton.disabled = false;
+      el('m360-audience-start').disabled = !audienceDataset;
+      el('m360-audience-plan').disabled = !audienceDataset;
+      el('m360-audience-start-ai').disabled = !audiencePlan?.predicate;
+      audienceMessage('Gateway profile mapping is available for this business. Processing needs an explicit user action; no campaign sending is connected.');
+    } catch (error) {
+      if (seq !== generation || scopedWorkspace !== workspace || !token) return;
+      renderAudienceJobs([]);
+      audienceMessage('UNAVAILABLE: Audience Engine gateway could not be verified. ' + errorMessage(error), true);
     }
-    const jobs = await api(scope + '/jobs');
-    renderAudienceJobs(Array.isArray(jobs.jobs) ? jobs.jobs : []);
-    el('m360-audience-start').disabled = !audienceDataset;
-    el('m360-audience-plan').disabled = !audienceDataset;
-    el('m360-audience-start-ai').disabled = !audiencePlan?.predicate;
-    audienceMessage(audienceDataset ? 'Dataset ready. Use Verified classification or review an AI Direct plan.' : 'Choose a supported dataset to begin.');
   }
   async function uploadAudience(e) {
-    e.preventDefault(); if (!workspace) return;
+    e.preventDefault(); if (!workspace || !audienceProfileIds.length) return audienceMessage('A tenant-verified Audience Engine profile is required before upload.', true);
     const input = el('m360-audience-files');
     if (!input.files || !input.files.length) return audienceMessage('Choose at least one dataset file.', true);
     const form = new FormData(); for (const file of input.files) form.append('files', file, file.name);
@@ -360,7 +384,7 @@
     node.hidden = false; node.textContent = JSON.stringify({ predicate: plan.predicate, explanation: plan.segment_explanation, unknown_conditions: plan.unknown_conditions, warnings: plan.warnings }, null, 2);
   }
   async function suggestAudiencePlan() {
-    if (!workspace || !audienceDataset) return;
+    if (!workspace || !audienceDataset || !audienceProfileIds.length) return audienceMessage('An authorized audience profile and dataset must be verified first.', true);
     const objective = el('m360-audience-objective').value.trim();
     if (objective.length < 3) return audienceMessage('Describe the audience segment first.', true);
     audienceMessage('Creating a schema-bound plan; no source rows are sent to AI…');
@@ -373,21 +397,23 @@
     } catch (e) { audienceMessage(errorMessage(e), true); }
   }
   async function startAiAudienceJob() {
-    if (!workspace || !audienceDataset || !audiencePlan?.predicate) return;
+    if (!workspace || !audienceDataset || !audiencePlan?.predicate || !audienceProfileIds.length) return;
+    if (!window.confirm('Start this separately authorized audience classification job for the selected business? No campaign messages will be sent.')) return;
     const key = globalThis.crypto && crypto.randomUUID ? crypto.randomUUID() : 'aud-ai-' + Date.now() + '-' + Math.random().toString(36).slice(2);
     audienceMessage('Submitting the approved AI Direct plan to the deterministic engine…');
     try {
-      const result = await api('/workspaces/' + encodeURIComponent(workspace) + '/audience/jobs', 'POST', { dataset_id: audienceDataset, idempotency_key: key, client_profiles: ['lakhotia','shree','vrindavan'], filter_plan: audiencePlan.predicate, audience_plan: audiencePlan });
+      const result = await api('/workspaces/' + encodeURIComponent(workspace) + '/audience/jobs', 'POST', { dataset_id: audienceDataset, idempotency_key: key, client_profiles: [...audienceProfileIds], filter_plan: audiencePlan.predicate, audience_plan: audiencePlan });
       audienceMessage('AI Direct job ' + (result.job_id || 'queued') + ' started. Refresh to see progress and exports.');
       await loadAudience();
     } catch (e) { audienceMessage(errorMessage(e), true); }
   }
   async function startAudienceJob() {
-    if (!workspace || !audienceDataset) return;
+    if (!workspace || !audienceDataset || !audienceProfileIds.length) return;
+    if (!window.confirm('Start this classification job using the authorized business profiles? No outbound messages will be sent.')) return;
     const key = globalThis.crypto && crypto.randomUUID ? crypto.randomUUID() : 'aud-' + Date.now() + '-' + Math.random().toString(36).slice(2);
     audienceMessage('Starting classification job…');
     try {
-      const result = await api('/workspaces/' + encodeURIComponent(workspace) + '/audience/jobs', 'POST', { dataset_id: audienceDataset, idempotency_key: key, client_profiles: ['lakhotia','shree','vrindavan'] });
+      const result = await api('/workspaces/' + encodeURIComponent(workspace) + '/audience/jobs', 'POST', { dataset_id: audienceDataset, idempotency_key: key, client_profiles: [...audienceProfileIds] });
       audienceMessage('Classification job ' + (result.job_id || 'queued') + ' started. Refresh to see progress and exports.');
       await loadAudience();
     } catch (e) { audienceMessage(errorMessage(e), true); }
