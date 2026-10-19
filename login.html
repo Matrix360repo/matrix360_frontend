@@ -10,7 +10,18 @@
 <section class="welcome"><div class="logo">M/ &nbsp;matrix 360</div><div><h1>Grow your business.<br>We’ll help you do it.</h1><p>Find the right customers, create better marketing and turn interest into sales—all in one easy workspace.</p><div class="steps"><div class="step"><b>1</b>Tell us about your business</div><div class="step"><b>2</b>Find your audience</div><div class="step"><b>3</b>Create and approve content</div><div class="step"><b>4</b>Track your opportunities</div></div></div><p class="fine">One intelligent command center. Every marketing function.</p></section>
 <section class="access"><div class="panel"><div class="logo" style="color:#08796f;margin-bottom:20px">Welcome to Matrix 360</div><h2>Where would you like to begin?</h2><p>Already work with Matrix 360? Sign in to open your private client dashboard. Exploring? Take a look without creating an account.</p><div class="tabs" role="tablist" aria-label="Account access"><button id="signInTab" role="tab" aria-selected="true" type="button">Client sign in</button><button id="signUpTab" role="tab" aria-selected="false" type="button">New here? Sign up</button></div>
 <form id="loginForm"><label class="label" for="userName">Email or username</label><input required autocomplete="username" id="userName"><label class="label" for="password">Password</label><input required type="password" autocomplete="current-password" id="password"><button class="btn primary full" type="submit" id="submitLogin">Open my client dashboard →</button><div role="status" aria-live="polite" id="loginStatus" class="small" style="margin-top:10px"></div></form>
-<div id="signup" hidden><h3>Start your Matrix 360 journey</h3><p>We'll help you choose the right setup for your business.</p><div class="note">Self-service account registration is being prepared. You can explore the public experience now; requesting access does not activate a private workspace.</div><a class="btn primary full" href="index.html">Explore Matrix 360 →</a></div>
+<div id="signup" hidden><h3>Create your Matrix 360 account</h3><p>Tell us about your business. Registration creates a pending account; access to a private client workspace requires separate Matrix 360 approval.</p>
+<form id="registerForm">
+<label class="label" for="registerName">Your full name</label><input id="registerName" name="full_name" autocomplete="name" minlength="2" maxlength="120" required>
+<label class="label" for="registerCompany">Company or business name</label><input id="registerCompany" name="company_name" autocomplete="organization" minlength="2" maxlength="160" required>
+<label class="label" for="registerEmail">Business email address</label><input id="registerEmail" name="email" type="email" autocomplete="email" maxlength="254" required>
+<label class="label" for="registerPassword">Create password</label><input id="registerPassword" name="password" type="password" autocomplete="new-password" minlength="12" maxlength="128" required>
+<p class="small muted">Use at least 12 characters. Never share your password with Matrix 360 staff.</p>
+<button class="btn primary full" type="submit" id="submitRegistration">Request account registration →</button>
+<div role="status" aria-live="polite" id="registerStatus" class="note" hidden></div>
+</form>
+<div class="note">After submitting: check your email if verification is enabled. A Matrix 360 administrator must approve and assign your organization before you can access private tools.</div>
+</div>
 <div style="text-align:center;padding-top:20px"><a href="index.html">Continue as a guest — no sign up needed →</a><p class="small muted" style="margin-top:10px">Guest access includes the public site and demonstration only.</p></div>
 </div></section></div>
 <div id="clientPanel" class="client"><header class="clienthead"><div class="logo">M/ &nbsp;matrix 360 <span class="small muted"> / Client Workspace</span></div><button class="btn" id="signOut" type="button">Sign out</button></header>

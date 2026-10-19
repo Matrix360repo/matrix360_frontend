@@ -1,0 +1,13 @@
+const fs=require('node:fs'),assert=require('node:assert/strict');
+const html=fs.readFileSync('login.html','utf8');
+const js=fs.readFileSync('client-access.js','utf8');
+for(const id of ['registerForm','registerName','registerCompany','registerEmail','registerPassword','submitRegistration','registerStatus'])assert.match(html,new RegExp('id="'+id+'"'));
+assert.match(html,/id="registerPassword"[^>]*autocomplete="new-password"[^>]*minlength="12"/);
+assert.match(html,/id="registerEmail"[^>]*type="email"/);
+assert.match(js,/\$\('registerForm'\)\.onsubmit=async e=>/);
+assert.match(js,/request\('\/auth\/register','POST',body\)/);
+assert.match(js,/result\?\.status!=='pending_review'/);
+assert.match(js,/\$\('registerPassword'\)\.value=''/);
+assert.match(html,/requires separate Matrix 360 approval/);
+assert.doesNotMatch(js.replace(/\/\*[\s\S]*?\*\//g,''),/localStorage\s*\./);
+console.log('New-client signup form contract verified; no hosted acceptance implied.');

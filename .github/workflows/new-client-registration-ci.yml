@@ -1,0 +1,18 @@
+name: New client registration UI
+on:
+  push:
+    branches: [feature/new-client-registration-form]
+  pull_request:
+    branches: [feature/website-login-entry-integration]
+permissions:
+  contents: read
+jobs:
+  registration:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: node --check client-access.js
+      - run: node tests/new-client-registration-contract.cjs
