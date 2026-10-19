@@ -1,0 +1,21 @@
+name: Server grounded CRM assistant
+on:
+  push:
+    branches: [feature/server-grounded-assistant]
+  pull_request:
+    branches: [feature/channel-neutral-crm-integration]
+permissions:
+  contents: read
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: node --check client-access.js
+      - run: node tests/channel-neutral-contract.cjs
+      - run: node tests/workspace-assistant-contract.cjs
+      - run: npm install --no-save --no-audit --no-fund jsdom@26
+      - run: node tests/synthetic-crm-journey.cjs
