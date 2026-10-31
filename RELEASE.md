@@ -13,6 +13,8 @@ This release replaces the prior static prototype with the reviewed Matrix360 app
 
 ## Verification boundary
 
+The first Git Production build of `b7372ad` failed with `unused_function`: a broad bundle pattern consumed handlers before exact duration entries were matched. Asset bundles now use non-overlapping exact handler paths, preserving the existing duration settings.
+
 This is an isolated UI demonstration. Demo profile and CRM edits are browser-local. AI generation, uploads, website research, lead scraping and publishing do not execute. No paid provider acceptance or live cancellation success is claimed.
 
 ## Rollback

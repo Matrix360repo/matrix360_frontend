@@ -239,10 +239,8 @@
     }
   ],
   "functions": {
-    "api/*.js": {
-      "includeFiles": "frontend-source/**"
-    },
     "api/creative-integrated.js": {
+      "includeFiles": "frontend-source/**",
       "maxDuration": 120
     },
     "api/product-ui.js": {
@@ -253,6 +251,12 @@
     },
     "api/control-center.js": {
       "maxDuration": 60
+    },
+    "api/preview.js": {
+      "includeFiles": "frontend-source/**"
+    },
+    "api/maps-js-overlay.js": {
+      "includeFiles": "frontend-source/**"
     }
   }
 }
