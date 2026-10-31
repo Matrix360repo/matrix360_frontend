@@ -1,0 +1,558 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f8f8f3">
+  <meta name="description" content="Matrix 360 — Your AI-Powered Marketing & Growth Team. A strategy-led, AI-native way to understand your market, find opportunities, create better marketing and plan growth.">
+  <title>Matrix 360 — Your AI-Powered Marketing & Growth Team</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root{
+      --ink:#172d31;--ink2:#294149;--muted:#687a7e;--green:#0b786b;--green-dark:#07594f;
+      --green-light:#e3f4eb;--green-mid:#b8e1cb;--cream:#f8f8f3;--paper:#fffefa;
+      --line:#dce5df;--orange:#e6ab74;--shadow:0 20px 58px rgba(21,51,48,.075);
+      --radius:22px;--max:1280px;
+    }
+    *,*::before,*::after{box-sizing:border-box}
+    html{scroll-behavior:smooth;scroll-padding-top:90px}
+    body{margin:0;font:15px/1.67 'DM Sans',system-ui,-apple-system,sans-serif;color:var(--ink);background:var(--cream);-webkit-font-smoothing:antialiased}
+    a{color:inherit;text-decoration:none}
+    button,input,textarea,select{font:inherit}
+    button{cursor:pointer}
+    button:disabled{cursor:not-allowed;opacity:.65}
+    ::selection{background:#c8eccc;color:#15423c}
+    :focus-visible{outline:3px solid #53b5a0;outline-offset:4px}
+    .container{width:min(var(--max),calc(100% - 72px));margin-inline:auto}
+    .section{padding:108px 0}
+    .tag{display:inline-flex;gap:10px;align-items:center;font-size:11px;font-weight:800;letter-spacing:.17em;text-transform:uppercase;color:var(--green)}
+    .tag::before{content:'';width:20px;height:2px;background:currentColor;border-radius:3px}
+    .section-title{font:800 clamp(33px,4.4vw,55px)/1.16 Manrope,system-ui,sans-serif;letter-spacing:-.058em;margin:20px 0}
+    .section-lede{color:var(--muted);font-size:17px;line-height:1.78;max-width:620px}
+    .muted{color:var(--muted)}
+    .visually-hidden{position:absolute!important;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+    svg.icon{width:21px;height:21px;flex:none;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+    .btn{display:inline-flex;align-items:center;justify-content:center;gap:12px;border-radius:12px;min-height:54px;border:1px solid transparent;font-weight:800;font-size:13px;padding:0 23px;white-space:nowrap;transition:transform .18s ease,background .18s ease,box-shadow .18s ease}
+    .btn:hover{transform:translateY(-2px)}
+    .btn-primary{background:var(--green);color:white;box-shadow:0 9px 23px rgba(9,110,94,.16)}
+    .btn-primary:hover{background:var(--green-dark)}
+    .btn-outline{background:transparent;border-color:#c9d8d1;color:var(--ink)}
+    .btn-outline:hover{background:white}
+    .btn-white{background:white;color:var(--ink)}
+    .btn svg{width:16px;height:16px;stroke-width:2.2}
+    .eyebrow{font-size:11px;letter-spacing:.17em;text-transform:uppercase;font-weight:800;color:var(--green)}
+
+    /* Navigation */
+    .nav-wrap{position:sticky;top:0;z-index:90;backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);border-bottom:1px solid rgba(214,226,217,.85);background:rgba(248,248,243,.91)}
+    .nav{min-height:82px;display:flex;align-items:center;justify-content:space-between;gap:30px}
+    .brand{display:inline-flex;align-items:center;gap:11px;flex:none}
+    .brand-mark{width:42px;height:42px;background:var(--green);color:white;border-radius:12px;display:grid;place-items:center;transform:rotate(-7deg);box-shadow:0 6px 13px #0b786b20}
+    .brand-mark svg{width:30px;height:30px;transform:rotate(7deg)}
+    .brand-word{font:800 22px/.96 Manrope,system-ui,sans-serif;letter-spacing:-.085em;color:var(--ink)}
+    .brand-word span{font-size:12px;letter-spacing:.0em;vertical-align:top;margin-left:3px;color:var(--green)}
+    .brand-sub{display:block;letter-spacing:.15em;text-transform:uppercase;color:var(--muted);font-weight:700;font-size:8px;line-height:1.1;margin-top:7px}
+    .nav-links{display:flex;align-items:center;gap:32px;margin-left:auto}
+    .nav-links a{font-size:12px;font-weight:800;color:#3f5558;transition:color .15s}
+    .nav-links a:hover{color:var(--green)}
+    .nav-cta{min-height:44px;padding:0 18px;font-size:12px;border-radius:10px}
+    .mobile-toggle{display:none;border:1px solid var(--line);border-radius:10px;background:white;width:44px;height:44px;align-items:center;justify-content:center}
+
+    /* Hero */
+    .hero{position:relative;isolation:isolate;overflow:hidden;background:radial-gradient(ellipse 460px 460px at 85% 20%,#ebf5e9 0%,transparent 80%),var(--cream)}
+    .hero-grid{padding:105px 0 108px;display:grid;grid-template-columns:1fr 1.04fr;align-items:center;gap:70px}
+    .hero h1{font:800 clamp(49px,5.1vw,76px)/1.095 Manrope,system-ui,sans-serif;letter-spacing:-.078em;margin:26px 0}
+    .hero h1 .accent{color:var(--green)}
+    .hero h1 .team-phrase{display:inline-block;font-size:.82em;white-space:nowrap}
+    .hero h1 .underline-swoosh{position:relative;white-space:nowrap}
+    .hero h1 .underline-swoosh::after{content:'';position:absolute;left:1%;right:2%;bottom:-9px;height:10px;background:#b5dbca;border-radius:80%;transform:rotate(-2deg) skewX(-20deg);opacity:.76;z-index:-1}
+    .hero-copy{max-width:565px}
+    .hero-copy>p{font-size:17px;line-height:1.82;color:#526971;max-width:490px;margin:0 0 27px}
+    .hero-actions{display:flex;align-items:center;gap:13px;flex-wrap:wrap;margin-top:30px}
+    .micro-proof{display:flex;align-items:center;gap:13px;flex-wrap:wrap;margin-top:33px;color:#667b78;font-size:11px;font-weight:700}
+    .micro-proof .sep{width:4px;height:4px;background:#9db4a7;border-radius:50%}
+    .micro-proof .small-check{display:inline-flex;gap:6px;align-items:center}
+    .micro-proof .small-check svg{width:14px;height:14px;color:var(--green)}
+    .hero-art{position:relative;min-width:0;padding:11px 0 18px 10px}
+    .hero-art::before{content:'';position:absolute;width:540px;height:540px;border:1px dashed #a4ceb9;border-radius:50%;top:50%;left:51%;transform:translate(-50%,-50%);opacity:.55;pointer-events:none}
+    .hero-art::after{content:'';position:absolute;width:710px;height:710px;border:1px solid #d7e8dc;border-radius:50%;top:47%;left:50%;transform:translate(-50%,-50%);opacity:.55;pointer-events:none;z-index:-1}
+    .workspace{border:1px solid #dbe9e0;background:#fff;box-shadow:0 35px 88px rgba(18,52,43,.12),0 3px 12px rgba(18,52,43,.045);border-radius:23px;position:relative;overflow:hidden;transform:rotate(1.1deg)}
+    .work-header{height:62px;display:flex;align-items:center;gap:10px;padding:0 22px;border-bottom:1px solid #e9eeea;background:#fcfdfb}
+    .work-dots{display:flex;gap:5px;margin-right:11px}
+    .work-dots i{display:block;width:7px;height:7px;background:#e5e9e6;border-radius:50%}
+    .work-dots i:first-child{background:#b6d4c4}
+    .work-header strong{font:800 13px Manrope,sans-serif;letter-spacing:-.035em}
+    .work-header small{display:block;color:#81918c;font-size:9px;font-weight:700;margin-top:1px}
+    .concept-pill{margin-left:auto;background:#eef5ef;border:1px solid #dbe9dd;color:#5d7467;border-radius:100px;font-size:8px;letter-spacing:.08em;padding:6px 9px;font-weight:800;white-space:nowrap}
+    .work-body{padding:23px 25px 25px;background:linear-gradient(180deg,#fff 0%,#fafdFA 100%)}
+    .work-welcome{display:flex;gap:12px;align-items:center;margin-bottom:19px}
+    .avatar{width:38px;height:38px;display:grid;place-items:center;border-radius:11px;background:#e6f4ee;color:var(--green)}
+    .avatar svg{width:21px;height:21px}
+    .work-welcome strong{display:block;font:800 14px Manrope,sans-serif;letter-spacing:-.04em}
+    .work-welcome small{display:block;color:#899791;font-size:11px;margin-top:2px}
+    .conversation{background:#f5f8f5;border:1px solid #e4ece5;padding:16px 18px;border-radius:14px 14px 14px 3px;margin-bottom:15px;font-size:12px;line-height:1.6;color:#50625b}
+    .conversation .tiny-label{font-size:9px;font-weight:800;color:#748981;letter-spacing:.11em;text-transform:uppercase;display:block;margin-bottom:5px}
+    .conversation.user{margin-left:42px;background:#edf5ee;border:1px solid #d9e7d9;border-radius:14px 14px 3px 14px;color:#173f35;font-weight:700}
+    .plan-card{border:1px solid #dcebe1;border-radius:14px;overflow:hidden;background:white;box-shadow:0 9px 26px #1b4f3c09}
+    .plan-heading{padding:15px 15px 11px;display:flex;align-items:center;justify-content:space-between;gap:10px}
+    .plan-heading strong{font:800 12px Manrope,sans-serif}
+    .plan-status{font-weight:800;font-size:9px;color:#17836b;background:#e8f7f0;border:1px solid #cee8dc;padding:4px 7px;border-radius:8px;white-space:nowrap}
+    .plan-row{display:flex;gap:11px;align-items:center;padding:10px 16px;border-top:1px solid #f0f4ef}
+    .plan-n{display:grid;place-items:center;background:#eef5f0;color:#388470;border-radius:8px;width:27px;height:27px;flex:none;font-size:10px;font-weight:800}
+    .plan-row strong{font-size:11px;display:block;color:#284d45}
+    .plan-row small{font-size:10px;display:block;color:#89978c}
+    .plan-symbol{margin-left:auto;color:#80a99c;width:17px;height:17px}
+    .float-note{position:absolute;z-index:4;left:-38px;bottom:15px;display:flex;gap:11px;align-items:center;background:#fffefa;border:1px solid #dbe6d9;box-shadow:0 12px 36px #1943301c;border-radius:13px;padding:12px 16px;transform:rotate(-3deg)}
+    .float-icon{width:34px;height:34px;display:grid;place-items:center;background:#e5f4eb;color:#087767;border-radius:10px}
+    .float-note strong{display:block;font-size:11px;letter-spacing:-.01em}
+    .float-note small{display:block;font-size:10px;color:#80918a}
+    .hero-cap{font-size:10px;text-align:right;margin-top:13px;color:#84938d}
+
+    /* Separation strip */
+    .discipline-bar{background:#eaf1ea;border-block:1px solid #deeadf}
+    .discipline-inner{display:flex;align-items:center;justify-content:space-between;padding:22px 0;gap:22px;flex-wrap:wrap}
+    .discipline-inner p{margin:0;font-size:12px;font-weight:800;color:#3d6359}
+    .discipline-list{display:flex;gap:24px;flex-wrap:wrap;color:#688078;font-size:11px;font-weight:800;letter-spacing:.03em}
+    .discipline-list span{display:flex;align-items:center;gap:8px}
+    .discipline-list span::before{content:'';width:5px;height:5px;background:#74b5a0;border-radius:50%}
+
+    /* Differentiation */
+    .difference-grid{display:grid;grid-template-columns:.95fr 1.05fr;gap:95px;align-items:center}
+    .difference-title{font:800 clamp(33px,4.2vw,54px)/1.18 Manrope,sans-serif;letter-spacing:-.066em;margin:22px 0 20px}
+    .difference-card{background:#153b37;color:#fff;border-radius:25px;padding:36px;position:relative;overflow:hidden;min-height:360px;box-shadow:0 20px 55px #203c3320}
+    .difference-card::after{content:'';border:1px solid #5d8c7d;border-radius:50%;width:370px;height:370px;position:absolute;right:-180px;bottom:-220px;opacity:.5;box-shadow:0 0 0 50px #1f554330,0 0 0 120px #2c6c4830}
+    .difference-card .topline{font-size:11px;font-weight:800;letter-spacing:.13em;text-transform:uppercase;color:#a9ccbb}
+    .comparison{margin-top:27px;display:grid;gap:20px;position:relative;z-index:1}
+    .comparison-item{display:flex;gap:15px;align-items:flex-start}
+    .comparison-icon{display:grid;place-items:center;width:38px;height:38px;border-radius:10px;background:#ffffff12;color:#b5e6d4;flex:none}
+    .comparison-item strong{font:800 14px Manrope,sans-serif;display:block;margin-bottom:3px}
+    .comparison-item p{color:#b7cac4;font-size:12px;line-height:1.6;margin:0}
+
+    /* Pillars */
+    .pillars-section{background:#f1f5ef;border-top:1px solid #e2ebe3;border-bottom:1px solid #e3eae3}
+    .pillars-intro{display:flex;gap:35px;justify-content:space-between;align-items:end;margin-bottom:39px}
+    .pillars-intro .section-lede{max-width:380px;margin-bottom:3px}
+    .pillars{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:17px}
+    .pillar{background:#fffefa;border:1px solid #e1eae1;border-radius:19px;padding:29px 27px 26px;min-height:265px;transition:transform .2s,box-shadow .2s,border-color .2s}
+    .pillar:hover{transform:translateY(-5px);box-shadow:0 14px 34px #1d403811;border-color:#cce0cf}
+    .pillar-icon{width:49px;height:49px;display:grid;place-items:center;background:#eaf5ed;border:1px solid #dbede1;color:#087b70;border-radius:13px;margin-bottom:25px}
+    .pillar-icon .icon{width:25px;height:25px}
+    .pillar h3{font:800 20px/1.26 Manrope,sans-serif;letter-spacing:-.047em;margin:0 0 11px}
+    .pillar p{font-size:13px;color:#677b75;line-height:1.8;margin:0}
+    .pillar .outcome{display:block;color:#0c7766;font-size:11px;font-weight:800;margin-top:20px}
+
+    /* Process */
+    .process-head{text-align:center;margin:0 auto 56px;max-width:770px}
+    .process-head .section-lede{margin:0 auto}
+    .process{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:18px;position:relative}
+    .process::before{content:'';position:absolute;height:1px;left:8%;right:8%;top:30px;border-top:1px dashed #a9c7b7;z-index:0}
+    .process-step{position:relative;z-index:1}
+    .process-num{display:grid;place-items:center;width:60px;height:60px;background:#e4f1e9;border:1px solid #cce3d4;border-radius:18px;color:var(--green);font:800 18px Manrope,sans-serif;margin-bottom:25px;box-shadow:0 0 0 9px var(--cream)}
+    .process-step h3{font:800 17px/1.35 Manrope,sans-serif;letter-spacing:-.03em;margin:0 0 9px}
+    .process-step p{color:#6a7b7a;font-size:12px;line-height:1.75;margin:0;max-width:250px}
+    .process-note{text-align:center;color:#758980;font-size:12px;margin-top:31px}
+
+    /* Audience */
+    .audience-section{padding-top:70px}
+    .audience-top{display:flex;align-items:end;justify-content:space-between;gap:30px;margin-bottom:32px}
+    .audience-cards{display:grid;grid-template-columns:repeat(3,1fr);gap:19px}
+    .audience-card{min-height:305px;border-radius:19px;padding:27px;overflow:hidden;position:relative;background:#e5efe8;border:1px solid #d5e5da;display:flex;flex-direction:column;justify-content:space-between}
+    .audience-card:nth-child(2){background:#e8efeb}.audience-card:nth-child(3){background:#f2f0e6}
+    .audience-card::before{content:'';position:absolute;width:240px;height:240px;border:1px solid #a8cec0;border-radius:50%;right:-102px;top:-105px;box-shadow:0 0 0 28px #b7dfcf40,0 0 0 72px #b7dfcf40}
+    .audience-card:nth-child(3)::before{border-color:#d7d0bb;box-shadow:0 0 0 28px #d9d1bd50,0 0 0 72px #d9d1bd40}
+    .audience-card .industry-type{position:relative;z-index:1;display:inline-block;align-self:flex-start;border:1px solid #c6ded0;background:#fffefa80;border-radius:100px;padding:6px 10px;font-size:10px;font-weight:800;color:#497364}
+    .audience-card h3{font:800 23px/1.22 Manrope,sans-serif;letter-spacing:-.05em;margin-bottom:10px;position:relative;z-index:1}
+    .audience-card p{color:#60726b;font-size:12px;line-height:1.7;margin:0;max-width:300px;position:relative;z-index:1}
+    .audience-shape{align-self:end;position:relative;width:95px;height:70px;margin-right:4px}
+    .audience-shape .icon{width:83px;height:70px;stroke:#0e796b;stroke-width:1;opacity:.65}
+
+    /* Engagement interactive */
+    .engage-section{position:relative;padding:105px 0 110px;background:#163d37;color:white;overflow:hidden}
+    .engage-section:before{content:'';position:absolute;pointer-events:none;width:820px;height:820px;border:1px solid #ffffff17;border-radius:50%;left:-420px;bottom:-610px;box-shadow:0 0 0 110px #ffffff08,0 0 0 260px #ffffff06}
+    .engage-grid{position:relative;display:grid;grid-template-columns:.8fr 1.2fr;gap:85px;align-items:start}
+    .engage-section .tag{color:#a3dfc7}
+    .engage-section .section-title{color:white;margin-top:24px}
+    .engage-left .lead{font-size:16px;color:#bdd1c7;line-height:1.87;margin-top:22px}
+    .engage-assurance{display:grid;gap:17px;margin-top:42px}
+    .assurance{display:flex;align-items:center;gap:12px;color:#d3e4da;font-size:12px;font-weight:700}
+    .assurance svg{width:17px;height:17px;color:#a2e2ca}
+    .brief-card{background:var(--paper);border:1px solid #dbe8de;color:var(--ink);border-radius:24px;overflow:hidden;box-shadow:0 30px 75px #092b2640}
+    .brief-card-top{padding:26px 28px 23px;border-bottom:1px solid #e5ebe4;display:flex;align-items:center;justify-content:space-between;gap:10px}
+    .brief-card-top strong{font:800 17px Manrope,sans-serif;letter-spacing:-.04em}
+    .brief-card-top small{color:#86968e;display:block;font-size:11px;margin-top:4px}
+    .no-send{background:#ecf7f0;border:1px solid #d8ebdd;color:#257f65;border-radius:9px;padding:6px 10px;font-size:9px;font-weight:800;white-space:nowrap}
+    .brief-form{padding:25px 28px 27px}
+    .brief-form label{display:block;font-size:12px;font-weight:800;margin-bottom:12px}
+    .brief-form textarea{width:100%;min-height:130px;border-radius:12px;border:1px solid #cfdfd3;background:#fafcf9;resize:vertical;padding:17px 18px;font-size:13px;line-height:1.7;color:#2d5249;outline:none;transition:border-color .15s,box-shadow .15s}
+    .brief-form textarea:focus{border-color:#50a88e;box-shadow:0 0 0 4px #5db89724}
+    .brief-form textarea::placeholder{color:#879990}
+    .examples-label{color:#83958b;font-size:10px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;margin:16px 0 10px}
+    .example-chips{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:20px}
+    .example-chip{background:#eef4ee;border:1px solid #dde9dd;color:#47675c;border-radius:9px;padding:8px 11px;font-size:10px;font-weight:800;text-align:left;transition:background .15s,border-color .15s}
+    .example-chip:hover,.example-chip:focus-visible{background:#e3f2e7;border-color:#a8d3b8}
+    details.more-context{border-top:1px solid #e7ede6;margin:4px 0 19px;padding-top:14px}
+    details.more-context summary{cursor:pointer;font-size:11px;color:var(--green);font-weight:800;list-style:none;display:flex;align-items:center;gap:8px}
+    details.more-context summary::-webkit-details-marker{display:none}
+    details.more-context summary svg{width:14px;height:14px;transition:transform .15s}
+    details.more-context[open] summary svg{transform:rotate(180deg)}
+    .context-grid{display:grid;grid-template-columns:1fr 1fr;gap:13px;margin:17px 0 4px}
+    .context-grid label{font-size:11px;margin:0}
+    .context-grid input,.context-grid select{width:100%;min-height:42px;margin-top:7px;border:1px solid #d4e2d8;background:white;border-radius:9px;padding:0 11px;color:#36534b;font-size:11px}
+    .form-bottom{display:flex;align-items:center;justify-content:space-between;gap:15px}
+    .form-bottom .btn{min-height:50px}
+    .form-bottom .privacy-note{font-size:10px;line-height:1.55;color:#81948a;max-width:182px}
+    .form-error{font-size:12px;color:#aa3030;font-weight:700;min-height:19px;margin:5px 0 0}
+    .result{display:none;margin-top:19px;background:#f6faf6;border:1px solid #d6e7dc;border-radius:15px;padding:20px 20px 16px}
+    .result.show{display:block;animation:rise .25s ease-out}
+    @keyframes rise{from{opacity:0;transform:translateY(7px)}to{opacity:1;transform:translateY(0)}}
+    .result-flag{display:flex;justify-content:space-between;gap:8px;align-items:center;flex-wrap:wrap}
+    .result-flag strong{font-size:11px;color:#34735d;font-weight:800}
+    .result-flag span{border:1px solid #d8e7d9;background:white;padding:4px 8px;border-radius:8px;font-size:9px;font-weight:800;color:#748a7e}
+    .result h3{font:800 16px/1.4 Manrope,sans-serif;letter-spacing:-.03em;margin:14px 0 6px}
+    .result p{color:#71847a;font-size:11px;line-height:1.7;margin:0}
+    .result ol{margin:14px 0;padding-left:19px;display:grid;gap:10px}
+    .result li{font-size:11px;color:#3d5b52;line-height:1.55;padding-left:4px}
+    .result li strong{font-weight:800;display:block;color:#1f4d3e;margin-bottom:2px}
+    .result-actions{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:15px}
+    .result-actions button{font-size:10px;border-radius:8px;border:1px solid #bcd9c4;background:white;padding:8px 11px;color:#346951;font-weight:800}
+    .result-actions button:hover{background:#e7f2e9}
+    .result .truth-note{margin-top:13px;color:#7f9085;font-size:10px;border-top:1px solid #dce9df;padding-top:12px}
+
+    /* Safeguards */
+    .responsibility-grid{display:grid;grid-template-columns:.92fr 1.08fr;gap:65px;align-items:center}
+    .responsibility-points{display:grid;grid-template-columns:1fr 1fr;gap:15px}
+    .responsibility-points .point{border-radius:16px;background:white;border:1px solid #e2eae3;padding:23px;min-height:176px}
+    .point svg{width:23px;height:23px;color:var(--green);margin-bottom:19px}
+    .point h3{font:800 14px Manrope,sans-serif;margin:0 0 8px}
+    .point p{font-size:12px;line-height:1.65;color:#71837a;margin:0}
+
+    /* FAQ */
+    .faq-section{background:#eef3ec;border-top:1px solid #e0e9df}
+    .faq-grid{display:grid;grid-template-columns:.7fr 1.3fr;gap:75px;align-items:start}
+    .faq-list{border-top:1px solid #cddbd0}
+    .faq-list details{padding:19px 0;border-bottom:1px solid #cddbd0}
+    .faq-list summary{font:800 14px/1.6 Manrope,sans-serif;letter-spacing:-.02em;cursor:pointer;display:flex;align-items:center;justify-content:space-between;gap:18px;list-style:none}
+    .faq-list summary::-webkit-details-marker{display:none}
+    .faq-list summary::after{content:'+';font:400 25px/1 Manrope;color:var(--green)}
+    .faq-list details[open] summary::after{content:'−'}
+    .faq-list p{color:#718079;font-size:13px;line-height:1.8;margin:12px 45px 0 0}
+
+    /* Final CTA and footer */
+    .final-cta{padding:85px 0;background:var(--green);color:#fff}
+    .cta-inner{display:flex;align-items:center;justify-content:space-between;gap:40px}
+    .cta-inner h2{font:800 clamp(28px,3.3vw,45px)/1.17 Manrope,sans-serif;letter-spacing:-.055em;margin:0 0 12px}
+    .cta-inner p{font-size:14px;color:#d3ece2;margin:0;max-width:540px}
+    .footer{background:#102b2a;color:#d5e7e0;padding:55px 0 25px}
+    .footer-main{display:flex;align-items:start;justify-content:space-between;gap:55px;padding-bottom:46px}
+    .footer .brand-word{color:white}.footer .brand-sub{color:#a0c1b4}
+    .footer-info{max-width:355px;color:#a6beb5;font-size:12px;line-height:1.8;margin-top:17px}
+    .footer-columns{display:flex;gap:75px;flex-wrap:wrap}
+    .footer-columns h3{margin:0 0 15px;text-transform:uppercase;font-size:10px;letter-spacing:.12em;color:#cde5d9}
+    .footer-columns a{display:block;font-size:12px;margin:9px 0;color:#a6beb5}
+    .footer-columns a:hover{color:white}
+    .footer-bottom{border-top:1px solid #35504b;padding-top:21px;display:flex;justify-content:space-between;gap:30px;color:#86a69b;font-size:10px}
+
+    @media(max-width:1150px){
+      .hero-grid{gap:40px}.hero h1{font-size:clamp(47px,5.5vw,66px)}.difference-grid{gap:45px}.engage-grid{gap:45px}
+      .nav-links{gap:19px}
+    }
+    @media(max-width:920px){
+      .container{width:min(var(--max),calc(100% - 48px))}
+      .section{padding:82px 0}
+      .nav-links{display:none;position:absolute;top:74px;left:0;right:0;flex-direction:column;align-items:stretch;gap:0;padding:12px 24px 18px;background:var(--paper);border-bottom:1px solid #dce7dc;box-shadow:0 18px 25px #123d2c17}
+      .nav-links.open{display:flex}.nav-links a{padding:12px 8px;border-bottom:1px solid #edf2ed}
+      .nav-links a:last-child{border-bottom:0}.mobile-toggle{display:flex}.nav-cta{margin-left:auto}
+      .hero-grid{grid-template-columns:1fr;gap:60px;padding:72px 0 77px}.hero-copy{max-width:730px}.hero-copy>p{max-width:630px}.hero h1{max-width:780px;font-size:clamp(49px,8vw,70px)}
+      .hero-art{max-width:650px;margin-inline:auto;width:calc(100% - 65px)}.float-note{left:-29px}
+      .pillars{grid-template-columns:repeat(2,1fr)}.pillars-intro{align-items:start}
+      .difference-grid,.engage-grid,.responsibility-grid,.faq-grid{grid-template-columns:1fr;gap:45px}
+      .difference-card{min-height:310px}.process{grid-template-columns:repeat(2,1fr);row-gap:35px}.process:before{display:none}
+      .audience-cards{grid-template-columns:repeat(3,1fr);gap:10px}.audience-card{padding:20px;min-height:300px}.audience-card h3{font-size:19px}
+      .engage-section{padding:84px 0}.engage-left{max-width:660px}.engage-assurance{grid-template-columns:repeat(3,1fr);gap:10px}.brief-card{max-width:730px;width:100%}
+    }
+    @media(max-width:640px){
+      .container{width:min(var(--max),calc(100% - 36px))}
+      .nav{min-height:70px;gap:8px}.brand-mark{width:37px;height:37px}.brand-word{font-size:19px}.brand-sub{font-size:7px}.nav-cta{display:none}.nav-links{top:69px}.mobile-toggle{width:41px;height:41px}
+      .hero-grid{padding:65px 0 70px;gap:39px}.hero h1{font-size:clamp(43px,10.4vw,57px);letter-spacing:-.078em;margin:22px 0 22px}.hero-copy>p{font-size:15px;line-height:1.8}
+      .tag{font-size:9px;letter-spacing:.12em}.hero-actions{display:grid;gap:9px;grid-template-columns:1fr}.hero-actions .btn{width:100%}.micro-proof{font-size:10px;gap:9px;margin-top:23px}
+      .hero-art{display:none}.work-header{height:52px;padding:0 12px}.work-body{padding:16px 13px}.work-header strong{font-size:11px}.work-header small{font-size:8px}.concept-pill{font-size:7px;padding:5px}
+      .work-dots{margin-right:0}.work-welcome strong{font-size:12px}.float-note{left:-10px;bottom:-22px;padding:8px 10px}.float-icon{width:28px;height:28px}.float-note strong{font-size:9px}.float-note small{font-size:9px}.hero-cap{margin-top:35px;text-align:center}
+      .discipline-inner{justify-content:center;text-align:center}.discipline-list{justify-content:center;gap:11px 14px;font-size:10px}
+      .section{padding:71px 0}.section-title,.difference-title{font-size:clamp(30px,8vw,43px)}.section-lede{font-size:14px}
+      .difference-card{padding:26px;min-height:340px}.difference-grid{gap:27px}
+      .pillars-intro{display:block}.pillars{grid-template-columns:1fr;gap:12px}.pillar{min-height:unset;padding:23px}.pillar-icon{margin-bottom:16px}.pillar .outcome{margin-top:13px}
+      .process-head{margin-bottom:33px}.process{grid-template-columns:1fr;gap:22px}.process-step{display:grid;grid-template-columns:52px 1fr;column-gap:17px}.process-num{width:48px;height:48px;border-radius:13px;grid-row:span 2;margin:0;font-size:15px}.process-step h3{font-size:15px}.process-step p{max-width:unset}.process-note{text-align:left}
+      .audience-section{padding-top:25px}.audience-top{display:block}.audience-cards{grid-template-columns:1fr;gap:12px}.audience-card{min-height:245px}.audience-card h3{font-size:23px}.audience-shape{margin-top:15px}
+      .engage-section{padding:70px 0}.engage-grid{gap:31px}.engage-assurance{display:grid;grid-template-columns:1fr;gap:12px;margin-top:27px}
+      .brief-card-top,.brief-form{padding-left:17px;padding-right:17px}.brief-card-top strong{font-size:14px}.brief-form textarea{min-height:130px}.context-grid{grid-template-columns:1fr}
+      .form-bottom{align-items:stretch;flex-direction:column-reverse}.form-bottom .btn{width:100%}.form-bottom .privacy-note{max-width:unset}.brief-card-top{padding-top:20px;padding-bottom:18px}.no-send{font-size:8px}
+      .responsibility-points{grid-template-columns:1fr}.responsibility-points .point{min-height:unset}
+      .faq-grid{gap:22px}.faq-list summary{font-size:12px}
+      .cta-inner{display:block}.cta-inner .btn{margin-top:23px;width:100%}.final-cta{padding:65px 0}
+      .footer-main{display:block}.footer-columns{gap:30px;margin-top:34px}.footer-bottom{flex-direction:column;gap:8px}
+    }
+    @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}*,*::before,*::after{animation-duration:.01ms!important;transition-duration:.01ms!important}}
+  </style>
+<link rel="stylesheet" href="matrix360-round-logo.css"></head>
+<body>
+  <!-- SVG icon system. Inline and self-contained; no external image dependencies. -->
+  <svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" style="position:absolute;width:0;height:0;overflow:hidden">
+    <symbol id="i-arrow" viewBox="0 0 24 24"><path d="M4 12h16M13 5l7 7-7 7"/></symbol>
+    <symbol id="i-check" viewBox="0 0 24 24"><path d="m5 12 4 4L19 6"/></symbol>
+    <symbol id="i-chevron" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></symbol>
+    <symbol id="i-spark" viewBox="0 0 24 24"><path d="m12 2 2.4 7.6L22 12l-7.6 2.4L12 22l-2.4-7.6L2 12l7.6-2.4L12 2z"/><path d="M19 2v4M17 4h4"/></symbol>
+    <symbol id="i-globe" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c3 3 4 6 4 9s-1 6-4 9M12 3c-3 3-4 6-4 9s1 6 4 9"/></symbol>
+    <symbol id="i-target" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1"/><path d="m12 12 8-8"/></symbol>
+    <symbol id="i-frame" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="3"/><circle cx="8" cy="9" r="1.6"/><path d="m3 17 5-4 4 3 4-5 5 5"/></symbol>
+    <symbol id="i-calendar" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M7 3v4M17 3v4M3 10h18M8 14h2M14 14h2M8 18h2"/></symbol>
+    <symbol id="i-flow" viewBox="0 0 24 24"><rect x="2" y="2" width="7" height="7" rx="2"/><rect x="15" y="2" width="7" height="7" rx="2"/><rect x="9" y="15" width="7" height="7" rx="2"/><path d="M9 5.5h6M5.5 9v5.5h7M18.5 9v3.5h-6V15"/></symbol>
+    <symbol id="i-chart" viewBox="0 0 24 24"><path d="M3 3v18h18"/><path d="m6 16 4-5 4 2 6-8"/><path d="M17 5h3v3"/></symbol>
+    <symbol id="i-shield" viewBox="0 0 24 24"><path d="M12 2c2 2 5.5 2.5 9 3v7c0 5-3.5 8.5-9 10-5.5-1.5-9-5-9-10V5c3.5-.5 7-1 9-3z"/><path d="m8 12 3 3 5-6"/></symbol>
+    <symbol id="i-eye" viewBox="0 0 24 24"><path d="M2 12c3-5 6-7 10-7s7 2 10 7c-3 5-6 7-10 7s-7-2-10-7z"/><circle cx="12" cy="12" r="3"/></symbol>
+    <symbol id="i-layers" viewBox="0 0 24 24"><path d="m12 3 9 5-9 5-9-5 9-5zM3 12l9 5 9-5M3 16l9 5 9-5"/></symbol>
+    <symbol id="i-heart" viewBox="0 0 24 24"><path d="M20 6a5 5 0 0 0-8 1 5 5 0 0 0-8-1c-2 2-2 5 0 7l8 8 8-8c2-2 2-5 0-7z"/></symbol>
+    <symbol id="i-users" viewBox="0 0 24 24"><circle cx="9" cy="8" r="3.2"/><path d="M2.5 21v-2a6.5 6.5 0 0 1 13 0v2H2.5z"/><path d="M16 4a3 3 0 0 1 0 7m2 4c2 1 3.5 2.5 3.5 5v1"/></symbol>
+    <symbol id="i-building" viewBox="0 0 24 24"><path d="M3 21V9l7-4v16M10 21V3l11 4v14M2 21h20M6 12h1M6 16h1M13 9h1M17 9h1M13 13h1M17 13h1M13 17h1M17 17h1"/></symbol>
+    <symbol id="i-home" viewBox="0 0 24 24"><path d="m3 11 9-8 9 8v10H3V11zM9 21v-7h6v7"/></symbol>
+    <symbol id="i-menu" viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16"/></symbol>
+    <symbol id="i-copy" viewBox="0 0 24 24"><rect x="7" y="7" width="14" height="14" rx="2"/><path d="M17 7V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h2"/></symbol>
+    <symbol id="i-lock" viewBox="0 0 24 24"><rect x="5" y="10" width="14" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3M12 14v3"/></symbol>
+  </svg>
+  <header class="nav-wrap">
+    <nav class="container nav" aria-label="Primary navigation">
+      <a class="brand" href="#top" aria-label="Matrix 360, back to top">
+        <span class="brand-mark m360-round-mark" aria-hidden="true"><img class="m360-round-logo" src="matrix360-round-logo.png" alt="" width="42" height="42" decoding="async"></span>
+        <span><span class="brand-word">MATRIX<span>360</span></span><span class="brand-sub">Growth Intelligence</span></span>
+      </a>
+      <div class="nav-links" id="nav-links">
+        <a href="#why">Why Matrix 360</a><a href="#capabilities">Capabilities</a><a href="#how-it-works">How it works</a><a href="#for-you">Who it's for</a>
+      </div>
+      <a href="#start" class="btn btn-primary nav-cta">Explore your growth plan <svg class="icon" aria-hidden="true"><use href="#i-arrow"/></svg></a>
+      <button class="mobile-toggle" id="nav-toggle" type="button" aria-label="Open navigation" aria-expanded="false" aria-controls="nav-links"><svg class="icon"><use href="#i-menu"/></svg></button>
+    </nav>
+  </header>
+
+  <main id="top">
+    <section class="hero" aria-labelledby="hero-title">
+      <div class="container hero-grid">
+        <div class="hero-copy">
+          <span class="tag">Strategy-led. AI-powered. Built for growth.</span>
+          <h1 id="hero-title">Your business.<br><span class="accent">Your goals.</span><br><span class="team-phrase underline-swoosh">Your AI growth team.</span></h1>
+          <p>Imagine having the intelligence of a marketing strategist, the creativity of an agency and the coordination of an entire growth team—all working around your business.</p>
+          <p>Meet <strong>Matrix 360</strong>. One place to understand your market, find opportunities, plan campaigns and move from ideas to meaningful action.</p>
+          <div class="hero-actions">
+            <a class="btn btn-primary" href="#start">Describe your growth goal <svg class="icon" aria-hidden="true"><use href="#i-arrow"/></svg></a>
+            <a class="btn btn-outline" href="#how-it-works">See how it works <svg class="icon" aria-hidden="true"><use href="#i-arrow"/></svg></a>
+          </div>
+          <div class="micro-proof">
+            <span class="small-check"><svg class="icon" aria-hidden="true"><use href="#i-check"/></svg> Business-first thinking</span><span class="sep"></span>
+            <span class="small-check"><svg class="icon" aria-hidden="true"><use href="#i-check"/></svg> Human-controlled decisions</span><span class="sep"></span>
+            <span class="small-check"><svg class="icon" aria-hidden="true"><use href="#i-check"/></svg> Built for Indian businesses</span>
+          </div>
+        </div>
+        <div class="hero-art" aria-label="Illustrative concept of a Matrix 360 growth planning workspace">
+          <div class="workspace">
+            <div class="work-header"><div class="work-dots" aria-hidden="true"><i></i><i></i><i></i></div><div><strong>Matrix 360</strong><small>AI Growth Manager · Concept workspace</small></div><span class="concept-pill">ILLUSTRATION</span></div>
+            <div class="work-body">
+              <div class="work-welcome"><span class="avatar"><svg class="icon" aria-hidden="true"><use href="#i-spark"/></svg></span><span><strong>Good morning. Let's talk growth.</strong><small>What would you like your business to achieve?</small></span></div>
+              <div class="conversation user"><span class="tiny-label">Your business goal</span>I want to reach qualified manufacturing buyers in eastern India and plan a focused campaign.</div>
+              <div class="conversation"><span class="tiny-label">Your Growth Manager</span>Let's start with your market, ideal buyer and offer. I'll organize a proposal for your review before any action is taken.</div>
+              <div class="plan-card">
+                <div class="plan-heading"><strong>Your proposed growth path</strong><span class="plan-status">DRAFT FOR REVIEW</span></div>
+                <div class="plan-row"><span class="plan-n">01</span><span><strong>Understand the market</strong><small>Competition · positioning · opportunity</small></span><svg class="icon plan-symbol" aria-hidden="true"><use href="#i-arrow"/></svg></div>
+                <div class="plan-row"><span class="plan-n">02</span><span><strong>Define the right audience</strong><small>Industry · geography · qualification</small></span><svg class="icon plan-symbol" aria-hidden="true"><use href="#i-arrow"/></svg></div>
+                <div class="plan-row"><span class="plan-n">03</span><span><strong>Plan the communication</strong><small>Content · channels · budget · approvals</small></span><svg class="icon plan-symbol" aria-hidden="true"><use href="#i-arrow"/></svg></div>
+              </div>
+            </div>
+          </div>
+          <div class="float-note"><span class="float-icon"><svg class="icon" aria-hidden="true"><use href="#i-shield"/></svg></span><div><strong>You're always in control</strong><small>Plans reviewed before action</small></div></div>
+          <div class="hero-cap">Illustrative interface · Not a connected live campaign</div>
+        </div>
+      </div>
+    </section>
+
+    <aside class="discipline-bar" aria-label="Core disciplines">
+      <div class="container discipline-inner"><p>More than another marketing tool.</p><div class="discipline-list"><span>Strategy</span><span>Intelligence</span><span>Creativity</span><span>Operations</span><span>Growth</span></div></div>
+    </aside>
+
+    <section class="section" id="why" aria-labelledby="why-title">
+      <div class="container difference-grid">
+        <div>
+          <span class="tag">The Matrix 360 difference</span>
+          <h2 class="difference-title" id="why-title">Marketing is complicated.<br><span style="color:var(--green)">Growing your business shouldn't be.</span></h2>
+          <p class="section-lede">Most businesses aren't short of software. They're short of time, specialized expertise and a clear way to connect strategy with action.</p>
+          <p class="section-lede" style="margin-top:15px">Matrix 360 is conceived as a growth partner in platform form: experienced marketing thinking, intelligent systems and coordinated work organized around <em>your</em> commercial objectives.</p>
+        </div>
+        <div class="difference-card">
+          <span class="topline">From disconnected work to one clear direction</span>
+          <div class="comparison">
+            <div class="comparison-item"><span class="comparison-icon"><svg class="icon" aria-hidden="true"><use href="#i-layers"/></svg></span><div><strong>One business brief</strong><p>Start with the outcome you want—not a maze of apps, dashboards or complicated setup.</p></div></div>
+            <div class="comparison-item"><span class="comparison-icon"><svg class="icon" aria-hidden="true"><use href="#i-spark"/></svg></span><div><strong>Connected thinking</strong><p>Bring research, audience planning, creative and campaign decisions into one coherent approach.</p></div></div>
+            <div class="comparison-item"><span class="comparison-icon"><svg class="icon" aria-hidden="true"><use href="#i-target"/></svg></span><div><strong>Business outcomes first</strong><p>Focus on qualified opportunities and meaningful progress—not just content volume or automation counts.</p></div></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section pillars-section" id="capabilities" aria-labelledby="capabilities-title">
+      <div class="container">
+        <div class="pillars-intro">
+          <div><span class="tag">One platform. Six ways forward.</span><h2 class="section-title" id="capabilities-title">An entire growth capability.<br>Working around you.</h2></div>
+          <p class="section-lede">What would usually take several specialists and applications becomes one guided marketing experience.</p>
+        </div>
+        <div class="pillars">
+          <article class="pillar"><span class="pillar-icon"><svg class="icon" aria-hidden="true"><use href="#i-globe"/></svg></span><h3>Think smarter.</h3><p>Explore your market, competition, business opportunities and positioning with a more structured, evidence-led approach.</p><span class="outcome">Better-informed decisions →</span></article>
+          <article class="pillar"><span class="pillar-icon"><svg class="icon" aria-hidden="true"><use href="#i-target"/></svg></span><h3>Target better.</h3><p>Turn business data into more relevant audiences through filtering, qualification, source evidence and responsible enrichment.</p><span class="outcome">Greater focus on the right prospects →</span></article>
+          <article class="pillar"><span class="pillar-icon"><svg class="icon" aria-hidden="true"><use href="#i-frame"/></svg></span><h3>Create faster.</h3><p>Develop campaigns, copy, visuals and reels guided by your offer, audience and approved brand identity.</p><span class="outcome">A more consistent brand voice →</span></article>
+          <article class="pillar"><span class="pillar-icon"><svg class="icon" aria-hidden="true"><use href="#i-calendar"/></svg></span><h3>Stay organized.</h3><p>Bring channel recommendations, communication plans, budgets and content calendars into a reviewable growth programme.</p><span class="outcome">Clarity instead of scattered activity →</span></article>
+          <article class="pillar"><span class="pillar-icon"><svg class="icon" aria-hidden="true"><use href="#i-flow"/></svg></span><h3>Work together.</h3><p>Move toward coordinated AI-assisted research, creative and campaign tasks—with meaningful human approval at every key boundary.</p><span class="outcome">Less manual coordination →</span></article>
+          <article class="pillar"><span class="pillar-icon"><svg class="icon" aria-hidden="true"><use href="#i-chart"/></svg></span><h3>Grow with insight.</h3><p>Bring customer activity, campaign performance and business outcomes together to support better decisions over time.</p><span class="outcome">More accountability for growth →</span></article>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="how-it-works" aria-labelledby="process-title">
+      <div class="container">
+        <div class="process-head"><span class="tag">How the journey works</span><h2 class="section-title" id="process-title">Your ambition is the starting point.</h2><p class="section-lede">You shouldn't need to understand the technology behind a marketing programme. Begin with your goal and move forward, one clear decision at a time.</p></div>
+        <div class="process">
+          <div class="process-step"><span class="process-num">01</span><h3>See what's possible.</h3><p>Explore how market intelligence, creativity and marketing operations can work together for your business.</p></div>
+          <div class="process-step"><span class="process-num">02</span><h3>Tell us your goal.</h3><p>Describe your business, the outcome you want and any important target-market or budget constraints.</p></div>
+          <div class="process-step"><span class="process-num">03</span><h3>Review a proposed plan.</h3><p>Understand the suggested research, audiences, content, channels and next steps—with assumptions made visible.</p></div>
+          <div class="process-step"><span class="process-num">04</span><h3>Approve what happens next.</h3><p>Decide what to refine, authorize or hold. Connected actions remain subject to service readiness and your approval.</p></div>
+        </div>
+        <p class="process-note">Designed around your business. Transparent about what the platform can do today—and what is still developing.</p>
+      </div>
+    </section>
+
+    <section class="section audience-section" id="for-you" aria-labelledby="audience-title">
+      <div class="container">
+        <div class="audience-top"><div><span class="tag">Built for real-world growth challenges</span><h2 class="section-title" id="audience-title">Different businesses.<br>Different paths to growth.</h2></div><p class="section-lede" style="max-width:380px">Your industry, commercial model and market shape the strategy—not a one-size-fits-all marketing template.</p></div>
+        <div class="audience-cards">
+          <article class="audience-card"><span class="industry-type">B2B & INDUSTRY</span><div><h3>Find the right<br>business buyers.</h3><p>Manufacturer outreach, distribution growth, industrial opportunity research and qualified B2B audiences.</p></div><span class="audience-shape"><svg class="icon" aria-hidden="true"><use href="#i-building"/></svg></span></article>
+          <article class="audience-card"><span class="industry-type">REAL ESTATE</span><div><h3>Turn interest into<br>meaningful enquiries.</h3><p>Audience targeting, differentiated communication, property campaigns and site-visit planning.</p></div><span class="audience-shape"><svg class="icon" aria-hidden="true"><use href="#i-home"/></svg></span></article>
+          <article class="audience-card"><span class="industry-type">GROWING BUSINESSES</span><div><h3>Build your brand.<br>Expand your reach.</h3><p>Positioning, content planning, lead generation and coordinated communications without the complexity.</p></div><span class="audience-shape"><svg class="icon" aria-hidden="true"><use href="#i-users"/></svg></span></article>
+        </div>
+      </div>
+    </section>
+
+    <section class="engage-section" id="start" aria-labelledby="start-title">
+      <div class="container engage-grid">
+        <div class="engage-left">
+          <span class="tag">Your first step</span>
+          <h2 class="section-title" id="start-title">Tell us what growth looks like for you.</h2>
+          <p class="lead">You don't need a perfect marketing brief. Tell us what you're trying to achieve—in your own words. See how Matrix 360 would begin shaping that into a growth plan.</p>
+          <div class="engage-assurance">
+            <div class="assurance"><svg class="icon" aria-hidden="true"><use href="#i-check"/></svg> No technical marketing jargon</div>
+            <div class="assurance"><svg class="icon" aria-hidden="true"><use href="#i-check"/></svg> A plan you can review and refine</div>
+            <div class="assurance"><svg class="icon" aria-hidden="true"><use href="#i-check"/></svg> No messages sent or costs incurred in this demo</div>
+          </div>
+        </div>
+        <div class="brief-card">
+          <div class="brief-card-top"><div><strong>Let's start with your objective.</strong><small>Illustrative plan-builder · no account needed</small></div><span class="no-send">LOCAL DEMO</span></div>
+          <div class="brief-form">
+            <form id="goal-form" novalidate>
+              <label for="growth-goal">What would you like your business to achieve?</label>
+              <textarea id="growth-goal" maxlength="900" placeholder="For example: I manufacture industrial equipment. I want to find relevant buyers in West Bengal and prepare a focused marketing programme. Nothing should be sent without my approval." aria-describedby="goal-error"></textarea>
+              <div class="examples-label">Or start with an example</div>
+              <div class="example-chips">
+                <button class="example-chip" type="button" data-goal="I want to find qualified manufacturing buyers in West Bengal and plan a focused B2B campaign.">Find B2B buyers</button>
+                <button class="example-chip" type="button" data-goal="Help me plan a campaign to generate meaningful property enquiries and more site visits for my real estate project.">Generate property enquiries</button>
+                <button class="example-chip" type="button" data-goal="I want a 30-day content strategy with LinkedIn posts, Instagram creatives and professional short-form reels.">Plan 30 days of content</button>
+              </div>
+              <details class="more-context" id="context-panel">
+                <summary>Add a little context (optional) <svg class="icon" aria-hidden="true"><use href="#i-chevron"/></svg></summary>
+                <div class="context-grid">
+                  <label for="business-type">Your type of business
+                    <select id="business-type"><option value="">Select if useful</option><option value="Manufacturing / B2B">Manufacturing / B2B</option><option value="Real estate / property">Real estate / property</option><option value="Professional services">Professional services</option><option value="Retail / consumer brand">Retail / consumer brand</option><option value="Other">Other / something else</option></select>
+                  </label>
+                  <label for="target-market">Where you want to reach customers
+                    <input type="text" id="target-market" maxlength="110" placeholder="e.g. West Bengal and Odisha">
+                  </label>
+                </div>
+              </details>
+              <div class="form-bottom"><p class="privacy-note">This demonstration works entirely in your browser. Your brief is not submitted to a server.</p><button class="btn btn-primary" id="preview-button" type="submit">Preview my growth plan <svg class="icon" aria-hidden="true"><use href="#i-arrow"/></svg></button></div>
+              <div class="form-error" id="goal-error" role="alert" aria-live="polite"></div>
+            </form>
+            <section class="result" id="plan-result" aria-label="Illustrative proposed growth plan" aria-live="polite">
+              <div class="result-flag"><strong>YOUR ILLUSTRATIVE GROWTH PLAN</strong><span>REVIEW ONLY · NO ACTION TAKEN</span></div>
+              <h3 id="result-title">A direction worth exploring</h3>
+              <p id="result-summary"></p>
+              <ol id="result-steps"></ol>
+              <div class="result-actions"><button type="button" id="copy-plan"><svg class="icon" style="width:13px;height:13px;vertical-align:-2px;margin-right:3px" aria-hidden="true"><use href="#i-copy"/></svg> Copy plan outline</button><button type="button" id="edit-goal">Edit my brief</button><span id="copy-message" style="font-size:10px;color:#32785e" role="status"></span></div>
+              <p class="truth-note">Concept preview only. These steps are locally generated suggestions—not live market research, verified leads, AI-generated content or a connected campaign. No messages are sent and nothing is purchased.</p>
+            </section>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" aria-labelledby="trust-title">
+      <div class="container responsibility-grid">
+        <div><span class="tag">Intelligence with accountability</span><h2 class="section-title" id="trust-title">Good marketing still needs good judgment.</h2><p class="section-lede">AI can prepare the work. Experience, business context and clear decision rights make it useful. Matrix 360 is being designed around human oversight—not unexplained autonomous actions.</p></div>
+        <div class="responsibility-points">
+          <div class="point"><svg class="icon" aria-hidden="true"><use href="#i-eye"/></svg><h3>Evidence over assumptions</h3><p>Research and targeting should show sources, uncertainty and what remains to be verified.</p></div>
+          <div class="point"><svg class="icon" aria-hidden="true"><use href="#i-shield"/></svg><h3>Approvals where they matter</h3><p>Publishing, outreach and new costs require explicit authorization and proper controls.</p></div>
+          <div class="point"><svg class="icon" aria-hidden="true"><use href="#i-layers"/></svg><h3>Your business context</h3><p>Positioning, brand constraints, audiences and objectives should shape recommendations.</p></div>
+          <div class="point"><svg class="icon" aria-hidden="true"><use href="#i-chart"/></svg><h3>Outcomes, not activity alone</h3><p>Measure what actually happened instead of treating draft plans or simulations as results.</p></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section faq-section" id="faq" aria-labelledby="faq-title">
+      <div class="container faq-grid">
+        <div><span class="tag">A few useful answers</span><h2 class="section-title" id="faq-title">You're in control.<br>Every step.</h2><p class="section-lede">A growth platform should simplify decisions—not hide them.</p></div>
+        <div class="faq-list">
+          <details><summary>Is Matrix 360 a marketing agency or software platform?</summary><p>The vision combines both: agency-quality strategic thinking and creative capabilities delivered through an AI-native platform. Clients may eventually choose self-service tools or more managed assistance. Individual functions will become available as they are validated.</p></details>
+          <details><summary>Do I have to understand AI, CRM systems or automation?</summary><p>No. The intended experience begins with your commercial objective, not technical configuration. Behind the scenes, specialist capabilities can prepare options for your review.</p></details>
+          <details><summary>Will the platform automatically spend my budget or contact customers?</summary><p>Not through this concept website. The intended production system has explicit approval, provider-permission and spending controls before consequential actions. The example plan above only prepares text in your own browser.</p></details>
+          <details><summary>Which features are available today?</summary><p>Matrix 360 is under development. There are working engineering foundations for CRM, audience processing, content production and campaign simulation. A complete agent-coordinated, cross-platform growth service is the product direction, not yet an accepted live end-to-end capability.</p></details>
+          <details><summary>Can the platform adapt to different industries and locations?</summary><p>That is a core design objective. Your business identity, operating location, target markets and offers should guide your plan without limiting you to a fixed list of pilot industries or regions.</p></details>
+        </div>
+      </div>
+    </section>
+
+    <section class="final-cta" aria-labelledby="final-title"><div class="container cta-inner"><div><h2 id="final-title">Your next growth conversation starts here.</h2><p>Begin with what matters to your business. The intelligence and the possibilities can follow.</p></div><a href="#start" class="btn btn-white">Describe your growth goal <svg class="icon" aria-hidden="true"><use href="#i-arrow"/></svg></a></div></section>
+  </main>
+
+  <footer class="footer">
+    <div class="container">
+      <div class="footer-main">
+        <div><a class="brand" href="#top"><span class="brand-mark m360-round-mark" aria-hidden="true"><img class="m360-round-logo" src="matrix360-round-logo.png" alt="" width="42" height="42" decoding="async"></span><span><span class="brand-word">MATRIX<span style="color:#87d6bd">360</span></span><span class="brand-sub">Growth Intelligence</span></span></a><p class="footer-info">The intelligence of a marketing team. The efficiency of an AI-native platform. Built around your business, your goals and meaningful progress.</p></div>
+        <div class="footer-columns"><div><h3>Explore</h3><a href="#why">Why Matrix 360</a><a href="#capabilities">Capabilities</a><a href="#how-it-works">How it works</a></div><div><h3>Get started</h3><a href="#for-you">Who it's for</a><a href="#start">Describe your goal</a><a href="#faq">Frequently asked questions</a></div></div>
+      </div>
+      <div class="footer-bottom"><span>© 2026 Matrix 360 · Product concept experience</span><span>Concept website for internal visualization. No live account, market research, campaign execution or data collection is connected.</span></div>
+    </div>
+  </footer>
+  <script>
+    (()=>{
+      'use strict';
+      const qs=s=>document.querySelector(s);
+      const navToggle=qs('#nav-toggle');const navLinks=qs('#nav-links');
+      navToggle.addEventListener('click',()=>{const open=navToggle.getAttribute('aria-expanded')!=='true';navToggle.setAttribute('aria-expanded',String(open));navToggle.setAttribute('aria-label',open?'Close navigation':'Open navigation');navLinks.classList.toggle('open',open)});
+      navLinks.querySelectorAll('a').forEach(el=>el.addEventListener('click',()=>{navToggle.setAttribute('aria-expanded','false');navToggle.setAttribute('aria-label','Open navigation');navLinks.classList.remove('open')}));
+      document.addEventListener('keydown',event=>{if(event.key==='Escape'){navToggle.setAttribute('aria-expanded','false');navLinks.classList.remove('open')}});
+
+      const goal=qs('#growth-goal'),result=qs('#plan-result'),form=qs('#goal-form');
+      const error=qs('#goal-error'),resultSteps=qs('#result-steps'),resultSummary=qs('#result-summary'),resultTitle=qs('#result-title');
+      const type=qs('#business-type'),market=qs('#target-market'),copyMessage=qs('#copy-message');
+      document.querySelectorAll('[data-goal]').forEach(b=>b.addEventListener('click',()=>{goal.value=b.dataset.goal;error.textContent='';goal.focus()}));
+      goal.addEventListener('input',()=>{error.textContent='';copyMessage.textContent=''});
+      let currentPlan='';
+      const planPresets={
+        b2b:{title:'A focused B2B growth programme',steps:[['Clarify your ideal business buyer','Define relevant industries, decision-maker roles, target regions and what makes your offer distinctive.'],['Check available audience evidence','Assess permitted company data, qualification rules, sources, missing contact fields and permission to reach people.'],['Develop the communications approach','Propose a relevant offer, channels such as LinkedIn and email, messages and a realistic content schedule.'],['Review budget, approvals and measurement','Document assumptions, campaign costs, permissions and the qualified enquiry outcomes worth tracking.']]},
+        property:{title:'A property marketing and enquiry plan',steps:[['Define the right buyer segments','Map affordability, catchment areas, motivations, property proposition and real competing alternatives.'],['Test your market and message','Research permissible market evidence and define credible, approved claims and differentiators.'],['Plan content and enquiry pathways','Outline property-focused visuals, approved reels, social media, enquiry handling and site-visit conversion.'],['Review calendar, cost and next actions','Prepare an initial calendar, channel budget assumptions, creative approvals and enquiry quality metrics.']]},
+        content:{title:'An organized brand and content programme',steps:[['Establish the brand content brief','Confirm positioning, target audience, claims, language, voice and available approved visual assets.'],['Research ideas that matter','Create a source-cited theme shortlist informed by customer questions, industry developments and competitive context.'],['Build a reviewable content calendar','Prepare a platform-specific posting sequence including articles, posts, creative briefs and reel concepts.'],['Approve assets and measure learning','Review brand quality, permissions, proposed publishing dates and meaningful engagement or enquiry indicators.']]},
+        default:{title:'A first direction for your growth plan',steps:[['Understand your business and objective','Confirm the offer, customer profile, market, commercial goals and measurable success criteria.'],['Research the opportunity','Map market context, audience assumptions, relevant competitors and evidence gaps to resolve.'],['Develop a coordinated marketing proposal','Propose targeting, positioning, suitable channels, content requirements, timing and budget assumptions.'],['Review the plan before any action','Confirm what is available, what needs setup, the approvals required and how outcomes will be measured.']]}
+      };
+      function classify(s){const t=s.toLowerCase();if(/property|real estate|apartment|flat|housing|bungalow|residential|site visit|plot |homes|homebuyer|developer/.test(t))return 'property';if(/reel|instagram|social|content|linkedin post|video|branding|brand awareness|creative|posts|calendar/.test(t))return 'content';if(/manufactur|industrial|b2b|wholesal|dealer|distributor|corporate buyer|warehouse|logistic|export|suppl|business buyer/.test(t))return 'b2b';return 'default'}
+      function makePlan(e){e.preventDefault();let text=goal.value.trim();if(text.length<18){error.textContent='Tell us a little more about what you would like to achieve (at least 18 characters).';goal.focus();return}error.textContent='';copyMessage.textContent='';const chosen=planPresets[classify(text+' '+type.value)];resultTitle.textContent=chosen.title;const target=market.value.trim();const business=type.value;let ctx=[];if(business)ctx.push('business: '+business);if(target)ctx.push('target market: '+target);resultSummary.textContent='Your goal: “'+text.slice(0,230)+(text.length>230?'…':'')+'”'+(ctx.length?' · Context provided — '+ctx.join('; '):'')+'. This is a suggested planning structure, not a researched recommendation.';resultSteps.replaceChildren();chosen.steps.forEach(([head,detail])=>{const li=document.createElement('li');const strong=document.createElement('strong');strong.textContent=head;const rest=document.createTextNode(detail);li.append(strong,rest);resultSteps.append(li)});currentPlan='MATRIX 360 — ILLUSTRATIVE GROWTH PLAN\nStatus: review-only browser demonstration\n\nYour objective: '+text+'\n'+(business?'Business type: '+business+'\n':'')+(target?'Target market: '+target+'\n':'')+'\n'+chosen.title+'\n\n'+chosen.steps.map(([h,d],i)=>(i+1)+'. '+h+'\n   '+d).join('\n\n')+'\n\nNot live research, verified leads, a connected campaign, or financial advice. No messages sent; no account created; no data submitted.';result.classList.add('show');result.scrollIntoView({behavior:matchMedia('(prefers-reduced-motion:reduce)').matches?'auto':'smooth',block:'nearest'});
+      }
+      form.addEventListener('submit',makePlan);
+      qs('#edit-goal').addEventListener('click',()=>{goal.focus();goal.scrollIntoView({behavior:'smooth',block:'center'})});
+      qs('#copy-plan').addEventListener('click',async()=>{if(!currentPlan)return;try{if(navigator.clipboard&&window.isSecureContext){await navigator.clipboard.writeText(currentPlan)}else{const helper=document.createElement('textarea');helper.value=currentPlan;helper.style.position='fixed';helper.style.opacity='0';document.body.appendChild(helper);helper.select();if(!document.execCommand('copy'))throw Error('copy unavailable');helper.remove()}copyMessage.textContent='Outline copied.'}catch{copyMessage.textContent='Copy unavailable here; select the outline manually.'}});
+    })();
+  </script>
+<script src="matrix360-engagement.js" defer></script>
+</body>
+</html>

@@ -1,0 +1,12 @@
+'use strict';
+const ui=require('../lib/m360-product-client');
+const posts=require('../lib/m360-post-client');
+const navigation=require('../lib/m360-nav-fix');
+const scraperGuard=require('../lib/m360-scraper-control-guard');
+const pipeline=require('../lib/m360-pipeline-remove');
+const hotfix=require('../lib/m360-hotfix-client');
+const deleteLeads=require('../lib/m360-lead-delete');
+const leadsOrchestrator=require('../lib/m360-leads-orchestrator-server');
+const onboarding=require('../lib/m360-onboarding');
+const posterHistory=require('../lib/m360-poster-history');
+module.exports=(req,res)=>{const kind=String(req.query?.mode||'');if(kind==='leads_server')return leadsOrchestrator(req,res);if(kind==='delete')return deleteLeads(req,res);if(kind==='onboarding')return onboarding(req,res);if(kind==='poster_history')return posterHistory(req,res);if(req.method!=='GET'){res.statusCode=405;res.end('GET only');return;}res.statusCode=200;res.setHeader('Content-Type','application/javascript; charset=utf-8');res.setHeader('Cache-Control','private,no-store');res.setHeader('X-Content-Type-Options','nosniff');res.end(kind==='control'?require('../lib/m360-control-client'):kind==='post'?posts:kind==='nav'?navigation:kind==='pipeline'?pipeline:kind==='scraper'?scraperGuard:kind==='hotfix'?hotfix:kind==='leads_subagent'||kind==='unified-leads'?require('../lib/m360-unified-leads-subagent'):kind==='marketing_client'||kind==='marketing'?require('../lib/m360-marketing-client'):ui);};

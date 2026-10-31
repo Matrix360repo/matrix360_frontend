@@ -1,0 +1,394 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Your Client Workspace | Matrix 360</title><style>
+*{box-sizing:border-box}body{margin:0;background:#f6f9f7;color:#193840;font:15px/1.5 'DM Sans',Inter,system-ui,sans-serif}button,input,select,textarea{font:inherit}a{color:inherit}button{cursor:pointer}.layout{min-height:100vh;display:grid;grid-template-columns:245px 1fr}.side{background:#104b4e;color:white;padding:28px 18px}.brand{font-size:24px;font-weight:900;letter-spacing:-.06em;margin:4px 12px 42px}.side a,.side button{display:block;width:100%;padding:14px 15px;border:0;border-radius:12px;text-decoration:none;color:#d8efea;background:transparent;text-align:left;font-weight:700}.side .active{background:#e5f8ec;color:#125850}.main{padding:39px clamp(20px,4vw,70px);max-width:1450px;width:100%}.top{display:flex;justify-content:space-between;align-items:center;gap:16px}.eyebrow{color:#0a8176;font-size:12px;font-weight:900;letter-spacing:.13em;text-transform:uppercase}h1{font-size:clamp(30px,4vw,48px);letter-spacing:-.06em;line-height:1.1;margin:14px 0}h2{letter-spacing:-.03em;font-size:22px}.lede{color:#61787c;max-width:680px}.card{background:white;border:1px solid #dfe9e7;border-radius:20px;padding:26px;margin-top:21px;box-shadow:0 12px 28px #1e4d4520}.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:15px}.feature{border:1px solid #e0eae6;background:#f9fbfa;border-radius:16px;padding:21px}.feature strong{display:block;font-size:17px}.feature p{font-size:13px;color:#6b8084}.tag{display:inline-flex;background:#fff2dc;border-radius:99px;padding:4px 11px;color:#96601a;font-size:11px;font-weight:800}.btn{padding:11px 18px;border-radius:11px;border:1px solid #ccdcd7;background:white;color:#0b6159;font-weight:800}.primary{background:#0a8278;color:white;border-color:#0a8278}select,input,textarea{border:1px solid #cbdad6;border-radius:10px;padding:12px;min-height:47px;max-width:100%}label{font-weight:750;font-size:13px;display:block;margin:12px 0 6px}.row{display:flex;align-items:center;justify-content:space-between;gap:15px;flex-wrap:wrap}.hidden{display:none!important}table{border-collapse:collapse;width:100%;margin-top:14px}th,td{padding:14px;text-align:left;border-bottom:1px solid #e8eeee;font-size:13px}th{color:#687f82}.error{background:#fff1ef;color:#973b30;padding:15px;border-radius:12px}.ok{background:#e8f7f0;color:#175f4d;padding:12px;border-radius:12px}.loading{color:#687b7d}.empty{padding:40px;text-align:center;background:#f6f9f7;border-radius:14px;color:#65797d}.formrow{display:flex;flex-wrap:wrap;gap:14px}.formrow>div{flex:1;min-width:160px}@media(max-width:900px){.layout{grid-template-columns:1fr}.side{padding:12px;display:flex;gap:8px;align-items:center;flex-wrap:wrap}.brand{margin:0 15px 0 4px;font-size:19px}.side a,.side button{width:auto;padding:10px;font-size:12px}.main{padding:25px 18px}.grid{grid-template-columns:1fr}table{display:block;overflow-x:auto}}
+
+/* Recovery-only refinements: no external fonts, trackers or backend calls. */
+:root{--m360-accent:#0a8278;--m360-ink:#193840;--m360-border:#dae6e3}
+html{scroll-behavior:smooth}body{min-width:320px}
+.skip-link{position:absolute;top:-90px;left:18px;z-index:999;background:#fff;color:#104b4e;padding:12px 18px;border-radius:10px;font-weight:800}
+.skip-link:focus{top:12px}
+:where(a,button,input,select,textarea):focus-visible{outline:3px solid #0a8278;outline-offset:3px}
+.side{position:sticky;top:0;height:100vh;overflow-y:auto}
+.side .side-group{font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.13em;color:#a3d9d2;margin:24px 12px 7px}
+.side a{transition:background .15s ease,color .15s ease}.side a:hover:not(.active){background:#186166;color:#fff}
+.side-note{font-size:12px;color:#bce0da;margin:35px 12px 15px;line-height:1.65}
+.main{max-width:1620px}.hero-panel{margin-top:22px;padding:clamp(22px,3vw,38px);border:1px solid #bedbd1;border-radius:22px;background:linear-gradient(115deg,#eaf8ef 0%,#f5fbfa 72%);display:grid;grid-template-columns:minmax(0,1.3fr) minmax(230px,.7fr);gap:30px;align-items:center}
+.hero-panel h1{font-size:clamp(28px,3.7vw,45px);margin:10px 0 16px;max-width:700px}.hero-panel .lede{color:#476968}
+.hero-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:22px}.hero-actions a{text-decoration:none;display:inline-flex;align-items:center;justify-content:center}
+.hero-diagram{background:#fff;border:1px solid #cfe4db;border-radius:17px;padding:20px;box-shadow:0 7px 22px #084c4020}.hero-diagram p{margin:0 0 14px;color:#69807d;font-size:12px;letter-spacing:.07em;text-transform:uppercase;font-weight:800}
+.diagram-stage{display:flex;align-items:center;gap:10px;font-weight:750;margin:12px 0}.diagram-index{width:27px;height:27px;display:grid;place-items:center;border-radius:50%;color:#0a665b;background:#e2f4e9;font-size:12px;flex:none}
+.diagram-stage small{color:#7c9692;font-size:11px;font-weight:650;margin-left:auto}
+.section-heading{margin:34px 0 12px}.section-heading h2{margin:0 0 4px}.section-heading .lede{margin:0}
+.action-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}.action-card{display:flex;flex-direction:column;align-items:flex-start;gap:7px;text-decoration:none;border-radius:17px;border:1px solid #dae8e3;background:#fff;padding:22px;box-shadow:0 5px 17px #1c514115;min-height:205px;transition:transform .12s ease,box-shadow .12s ease}.action-card:hover{transform:translateY(-2px);box-shadow:0 12px 28px #1c514122}.action-card strong{font-size:18px}.action-card p{margin:0;color:#637e7b;font-size:13px;flex:1}.action-card .action-link{color:#0a7369;font-weight:850;font-size:13px}
+.action-index{display:grid;place-items:center;width:36px;height:36px;background:#eaf7f0;color:#0a7369;border-radius:12px;font-size:14px;font-weight:900}
+.business-band{margin-top:20px;display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap;border:1px solid #d4e7df;border-radius:16px;background:#fff;padding:18px 23px}.business-band strong{color:#0c6a61}.business-band .business-detail{font-size:13px;color:#647e78}
+.workspace-identity{font-size:17px;font-weight:850;min-height:45px;display:flex;align-items:center}
+.journey-list{list-style:none;padding:0;margin:0;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}.journey-list li{background:#f9fcfa;border:1px solid #e1ebe5;border-radius:14px;padding:16px;min-height:125px}.journey-list strong{display:block;margin:8px 0 4px}.journey-list .description{font-size:12px;color:#617a76}.journey-list .tag{font-size:10px}.tag-live{background:#e6f5e8;color:#136248}.tag-pending{background:#fff2dc;color:#96601a}
+#leads,#services,#journey{scroll-margin-top:20px}.grid .card{margin-top:0}.feature>a{font-weight:800;font-size:13px;color:#0a756c}.feature strong{margin-top:12px}
+.side a[aria-current="page"]{background:#e5f8ec;color:#125850}
+@media(max-width:1100px){.hero-panel{grid-template-columns:1fr}.action-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.journey-list{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:900px){.side{position:static;height:auto;overflow:visible}.side-note,.side-group{display:none}.main{max-width:100%}.hero-panel{margin-top:15px}.action-grid{grid-template-columns:1fr}.journey-list{grid-template-columns:repeat(2,minmax(0,1fr))}.brand{margin:0 18px 0 2px}.side{align-items:center}.side a,.side button{min-height:42px}}
+@media(max-width:480px){.hero-panel{padding:22px}.hero-actions .btn{width:100%}.journey-list{grid-template-columns:1fr}.main{padding:20px 14px}.action-card{min-height:0}.side{gap:4px}.brand{width:100%}.side a,.side button{font-size:12px;padding:10px 9px}}
+@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}.action-card,.side a{transition:none}}
+
+/* Recovery preview v2 — frontend only; no tenant, auth, or live API modifications */
+.goal-section{margin-top:26px;background:#fff;border:1px solid #d9e7e2;border-radius:20px;padding:24px;box-shadow:0 8px 24px #14483c0c}
+.goal-intro{display:flex;justify-content:space-between;gap:18px;align-items:start}.goal-intro h2{font-size:clamp(22px,2.5vw,29px);margin:6px 0}.goal-intro .lede{font-size:14px;margin:6px 0}
+.preview-note{flex:none;color:#857147;background:#f9f4e7;border:1px solid #efdfb7;border-radius:100px;padding:7px 12px;font-size:10px;letter-spacing:.07em;font-weight:800}
+.goal-options{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-top:20px}
+.goal-option{border:1px solid #d8e6e0;background:#fafcfa;color:#193840;border-radius:14px;display:flex;align-items:flex-start;flex-direction:column;gap:5px;text-align:left;padding:16px;min-height:142px;transition:background .12s ease,border-color .12s ease;cursor:pointer}
+.goal-option.selected{background:#e9f8f2;border:2px solid #087c70;padding:15px}
+.goal-option:hover{background:#eaf5f0}.goal-option strong{font-size:15px;line-height:1.25}.goal-option small{color:#6a827c;font-size:12px}
+.goal-symbol{display:grid;place-items:center;background:#e6f4ef;color:#08796d;border-radius:10px;width:34px;height:34px;font-size:22px;font-weight:bold;margin-bottom:5px}
+.goal-result{display:flex;align-items:center;justify-content:space-between;gap:18px;padding:18px;margin-top:14px;border:1px solid #dbeae2;border-radius:13px;background:#f7fbf9}
+.goal-result h3{margin:9px 0 4px;font-size:18px}.goal-result p{font-size:13px;color:#617b74;margin:0;max-width:690px}.goal-result .btn{flex:none;text-decoration:none}
+@media(min-width:901px){.workspace-nav{display:block}}
+@media(max-width:900px){.layout{grid-template-columns:minmax(0,1fr)}.side,.main,.workspace-nav{min-width:0;max-width:100%}.side{position:sticky;top:0;z-index:30;display:block;box-shadow:0 4px 16px #173c3022;background:#fff;color:#193840;padding:8px 16px 4px;border-bottom:1px solid #d8e8e3}.brand{margin:0 0 5px;color:#104b4e;font-size:18px}.workspace-nav{display:flex;gap:4px;overflow-x:auto;white-space:nowrap;padding:1px 0 5px;scrollbar-width:thin;max-width:100%}.side a{flex:none;color:#345e5b;padding:9px 12px;font-size:12px;min-height:38px}.side .active,.side a[aria-current="page"]{background:#dff4e9;color:#10594f}.side button#logout{position:absolute;right:12px;top:5px;width:auto;font-size:12px;padding:5px 10px;min-height:29px;border:1px solid #dce8e4;color:#3b5e5c}.side a:hover:not(.active){color:#155348;background:#eef7f3}.goal-intro{flex-wrap:wrap}.preview-note{font-size:9px}.goal-options{grid-template-columns:repeat(3,minmax(0,1fr))}.goal-result{align-items:flex-start}.hero-diagram{display:none}}
+@media(max-width:640px){.goal-section{padding:17px;margin-top:16px}.goal-options{grid-template-columns:1fr;gap:9px}.goal-option{min-height:auto;display:grid;grid-template-columns:35px 1fr;gap:1px 12px;padding:12px}.goal-option.selected{padding:11px}.goal-option .goal-symbol{grid-row:span 2;margin:0}.goal-option small{grid-column:2}.goal-result{flex-direction:column;align-items:stretch;padding:13px}.goal-result .btn{text-align:center}.hero-panel{padding:21px}.hero-panel h1{font-size:32px}.section-heading{margin-top:22px}.main{padding-top:14px}.business-band{padding:14px}}
+@media(prefers-reduced-motion:reduce){.goal-option{transition:none}}
+
+/* Friday recovery refinement V3: grounded, read-only marketing brief */
+#growth-plan{scroll-margin-top:120px}
+.plan-panel{margin-top:20px;padding:24px;background:#fff;border:1px solid #d9e8e3;border-radius:20px;box-shadow:0 8px 24px #14483c0b}
+.plan-header{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap;align-items:start}
+.plan-header h2{margin:6px 0;font-size:clamp(22px,2.4vw,29px)}
+.plan-meta{color:#648078;font-size:12px;margin:4px 0}
+.plan-preview-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin:18px 0 12px}
+.plan-step{background:#f8fbf9;border:1px solid #deebe5;border-radius:15px;padding:18px;min-width:0}
+.plan-step .step-number{font-weight:900;font-size:12px;color:#087b71;letter-spacing:.12em}
+.plan-step h3{font-size:16px;line-height:1.3;margin:9px 0}
+.plan-step p{font-size:13px;color:#5f7b76;margin:0}
+.plan-proof{display:flex;align-items:start;gap:10px;border-radius:12px;border:1px solid #e5e4d2;background:#faf9f0;padding:15px;color:#746a39;font-size:12px}
+.plan-footer{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-top:17px}
+.plan-footer p{font-size:12px;color:#657b77;margin:0}
+.plan-info{display:inline-flex;gap:10px;align-items:center;flex-wrap:wrap}
+.plan-information{font-size:13px;color:#5b766c}
+#plan-live-count{font-variant-numeric:tabular-nums}
+@media(max-width:950px){.plan-preview-grid{grid-template-columns:1fr}.plan-step{padding:15px}}
+@media(max-width:480px){.plan-panel{padding:18px}.plan-footer .btn{width:100%;text-align:center}}
+/* Friday review gate: acknowledgement only, no persisted approval or dispatch. */
+.ai-review-gate{margin:18px 0 4px;border:1px solid #cde0d9;border-radius:16px;background:#f6fbf9;padding:18px;max-width:880px}
+.ai-review-gate[hidden]{display:none!important}
+.ai-review-gate h3{font-size:17px;margin:0 0 5px;color:#184940}
+.ai-review-gate p{font-size:13px;color:#476b63;margin:5px 0 12px}
+.ai-review-checks{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin:14px 0}
+.ai-review-checks label{display:flex;gap:8px;align-items:flex-start;padding:12px;border:1px solid #d6e7df;border-radius:11px;background:white;min-width:0;font-size:13px;cursor:pointer}
+.ai-review-checks input{margin-top:3px;accent-color:#087b71;flex:none}
+.ai-review-meta{font-size:12px;color:#536d66;padding:8px 0;border-top:1px solid #dce9e3}
+#ai-review-confirm:disabled{cursor:not-allowed;opacity:.55}
+#ai-review-status{font-weight:700;color:#125e53}
+@media(max-width:850px){.ai-review-checks{grid-template-columns:1fr}}
+#ai-plan-output{margin-top:15px;max-width:840px}#ai-plan-output h3{font-size:19px;margin:12px 0 4px}#ai-plan-output ol{padding-left:22px}#ai-plan-output li{margin:12px 0}#ai-plan-output li p{margin:4px 0;color:#506c70}#ai-plan-status{font-size:13px;color:#537377}
+</style><style>
+.m360-handoff{border:1px solid #b6dcd0;background:linear-gradient(115deg,#f4fbf8,#ffffff);margin:22px 0;scroll-margin-top:100px}
+.m360-handoff[hidden]{display:none!important}.m360-handoff h2{margin:9px 0 14px;font-size:clamp(21px,2.4vw,31px);color:#173e38}
+.m360-handoff-goal{font-size:16px;line-height:1.65;white-space:pre-wrap;overflow-wrap:anywhere;color:#183d3b}
+.m360-handoff-context{font-size:12px;color:#53716a;overflow-wrap:anywhere}
+.m360-handoff-actions{display:flex;gap:10px;flex-wrap:wrap;margin:18px 0}
+.m360-handoff-actions button{min-height:44px}
+</style>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet"><link rel="stylesheet" href="matrix360-ui-theme.css">
+<link rel="stylesheet" href="matrix360-round-logo.css"></head><body class="m360-matched-crm"><a class="skip-link" href="#primary-content">Skip to workspace content</a><div class="layout"><aside class="side" aria-label="Workspace navigation"><div class="brand"><a class="m360-approved-brand" href="index.html" aria-label="Matrix 360 — Return to the public website"><span class="m360-brand-mark m360-round-mark" aria-hidden="true"><img class="m360-round-logo" src="matrix360-round-logo.png" alt="" width="42" height="42" decoding="async"></span><span class="m360-brand-label"><strong>MATRIX<span>360</span></strong><small>GROWTH INTELLIGENCE</small></span></a></div><div class="side-group">MY BUSINESS</div><nav class="workspace-nav" aria-label="Workspace sections"><a href="#home" class="active" aria-current="page">Overview</a><a href="#quick-start">Start here</a><a href="#leads">My leads &amp; pipeline</a><a href="#journey">How it works</a><a href="#services">My marketing tools</a></nav><div class="side-note">Your business data stays inside your authorized workspace. Only verified features are marked live.</div><button id="logout">Sign out</button></aside><main class="main" id="primary-content"><div class="top"><span class="eyebrow">PRIVATE CLIENT SPACE</span><span id="who" class="tag">Verifying access…</span></div><section id="loading" class="card loading" role="status">Checking your sign-in and workspace permissions…</section><section id="denied" class="card hidden"><h1>Sign in to continue</h1><p id="denied-msg">Your session needs to be verified.</p><a href="login.html" class="btn primary" style="display:inline-block;text-decoration:none">Go to client sign in →</a></section><div id="verified" class="hidden"><section id="home" aria-labelledby="hero-title">
+<div class="hero-panel"><div><span class="eyebrow">YOUR AI-POWERED MARKETING & GROWTH TEAM</span><h1 id="hero-title">A clearer way to grow your business.</h1><p class="lede">Manage enquiries today. Build toward one connected process for audience discovery, content and approved outreach—without losing control of your customer data.</p><div class="hero-actions"><a href="#leads" class="btn primary">View my pipeline →</a><a href="#quick-start" class="btn">Explore next steps</a></div></div><div class="hero-diagram" aria-label="Marketing lifecycle with truthful service availability"><p>One connected journey</p><div class="diagram-stage"><span class="diagram-index">01</span>Discover the right audience <small>Planned</small></div><div class="diagram-stage"><span class="diagram-index">02</span>Create purposeful content <small>Planned</small></div><div class="diagram-stage"><span class="diagram-index">03</span>Manage your leads <small>Live CRM</small></div><div class="diagram-stage"><span class="diagram-index">04</span>Improve conversion <small>Planned</small></div></div></div>
+<div class="business-band"><div><span class="eyebrow">YOUR BUSINESS</span><div class="workspace-identity" id="workspace-single-name" aria-live="polite">Loading authorized business…</div><div class="business-detail">Records are retrieved from your authorized CRM workspace only.</div></div><div id="workspace-selector-row"><label for="workspace">Choose an authorized business</label><select id="workspace" aria-label="Authorized workspace"></select></div><button class="btn" id="refresh">Refresh my records</button></div><p id="status" role="status" aria-live="polite"></p>
+<section id="engagement-continuation" class="card m360-handoff" aria-labelledby="engagement-handoff-title" hidden>
+  <span class="eyebrow">YOUR OBJECTIVE · CONTINUED FROM MATRIX 360</span>
+  <h2 id="engagement-handoff-title">Your growth conversation, continued.</h2>
+  <p id="engagement-goal-text" class="m360-handoff-goal"></p>
+  <p id="engagement-context-text" class="m360-handoff-context"></p>
+  <p id="engagement-workspace-note" role="status">Continue within your verified business workspace.</p>
+  <div class="m360-handoff-actions"><button type="button" id="engagement-use-goal" class="btn primary">Use this objective in my growth brief →</button><button type="button" id="engagement-discard-goal" class="btn">Discard draft</button></div>
+  <p class="m360-handoff-context">This browser-tab draft is eligible for use for 30 minutes from capture. It is not a saved CRM plan, a live AI response or an approval to dispatch.</p>
+</section>
+<section id="goals" class="goal-section" aria-labelledby="goal-title"><div class="goal-intro"><div><span class="eyebrow">START WITH YOUR BUSINESS OBJECTIVE</span><h2 id="goal-title">Where should we focus first?</h2><p class="lede">Choose a priority to see the next step. This is an illustrative guide, not a generated or saved marketing plan.</p></div><span class="preview-note">GUIDED PREVIEW · NO PLAN SAVED</span></div><div class="goal-options" role="group" aria-label="Choose a marketing objective"><button class="goal-option selected" type="button" data-goal="enquiries" aria-pressed="true"><span class="goal-symbol" aria-hidden="true">↗</span><strong>Get more enquiries</strong><small>Find the next opportunity</small></button><button class="goal-option" type="button" data-goal="conversion" aria-pressed="false"><span class="goal-symbol" aria-hidden="true">◎</span><strong>Convert existing leads</strong><small>Strengthen your follow-up</small></button><button class="goal-option" type="button" data-goal="campaign" aria-pressed="false"><span class="goal-symbol" aria-hidden="true">✦</span><strong>Prepare a campaign</strong><small>Get ready for approved outreach</small></button></div><div class="goal-result" aria-live="polite"><div><span class="tag tag-live" id="goal-state">CRM available</span><h3 id="goal-result-title">Start by capturing every enquiry</h3><p id="goal-result-detail">Keep a clean pipeline now. Audience discovery and campaign integrations will become available after authorization and testing.</p></div><a class="btn primary" href="#add-form" id="goal-result-link">Add an enquiry →</a></div></section>
+<section class="plan-panel" id="growth-plan" aria-labelledby="plan-heading">
+ <div class="plan-header"><div><span class="eyebrow">EXPLAINABLE GROWTH BRIEF</span>
+ <h2 id="plan-heading">Your next three steps</h2>
+ <p class="lede">A transparent working brief based on your selected objective and authorized CRM lead counts. Nothing is saved or sent.</p></div><span class="preview-note">ILLUSTRATIVE · HUMAN REVIEW REQUIRED</span></div>
+ <div class="plan-info"><span class="tag tag-live" id="plan-source">CRM evidence pending</span>
+ <span class="plan-information" id="plan-live-count" aria-live="polite">Waiting for workspace records</span></div>
+ <div class="plan-preview-grid" id="plan-steps" aria-live="polite">
+   <article class="plan-step"><span class="step-number">01</span><h3>Review your current enquiries</h3><p>Load your authorized CRM records to tailor this brief.</p></article>
+ </div>
+ <div class="plan-proof" role="note"><strong>Evidence boundary:</strong><span id="plan-boundary">Only lead counts and stages from the selected authorized workspace are used. Audience estimates, conversion projections and channel results are not available.</span></div>
+ <div class="plan-footer"><p id="plan-review-status" role="status">Review only · no automated campaign actions</p><a class="btn primary" id="plan-next-action" href="#leads">Review my leads →</a></div>
+</section>
+<section id="ai-draft" class="card" aria-labelledby="ai-plan-title">
+  <div class="row"><div><span class="eyebrow">OPTIONAL LOCAL AI ASSISTANT</span>
+    <h2 id="ai-plan-title">Generate an evidence-aware draft</h2>
+    <p class="lede">A local language model can suggest next steps using only aggregate stages from your authorized CRM. This is not a prediction, verified strategy or action authorization.</p>
+  </div><span class="tag tag-pending">Review-only · no dispatch</span></div>
+  <label for="ai-goal-brief">Describe your business goal in plain English (optional)</label>
+  <textarea id="ai-goal-brief" rows="2" maxlength="240" placeholder="For example: We need more qualified manufacturing enquiries in West Bengal."></textarea>
+  <p class="lede" style="font-size:12px">Maximum 240 characters. Do not enter names, contact information, URLs or confidential customer details.</p>
+  <p id="ai-plan-status" role="status" aria-live="polite">Waiting for authorized workspace data.</p>
+  <button class="btn primary" type="button" id="ai-plan-generate" disabled>Generate AI draft for this objective</button>
+  <div id="ai-plan-output" aria-live="polite"></div>
+  <div id="ai-review-gate" class="ai-review-gate" hidden aria-labelledby="ai-review-heading">
+    <h3 id="ai-review-heading">Verify this draft before using it</h3>
+    <p>This is a local review acknowledgement only. It does not approve, save, publish or dispatch a campaign.</p>
+    <div class="ai-review-checks" role="group" aria-label="Draft review checks">
+      <label><input type="checkbox" data-ai-review-check="evidence"> CRM evidence and limitations checked</label>
+      <label><input type="checkbox" data-ai-review-check="recommendation"> Each suggested action reviewed for accuracy</label>
+      <label><input type="checkbox" data-ai-review-check="approval"> Separate operational approval will be required</label>
+    </div>
+    <div class="ai-review-meta" id="ai-review-evidence">Evidence pending</div>
+    <button class="btn primary" id="ai-review-confirm" type="button" disabled>Acknowledge my review</button>
+    <p id="ai-review-status" role="status" aria-live="polite">Not yet reviewed. Nothing saved or sent.</p>
+  </div>
+  <p class="lede" style="font-size:12px">Disabled unless a local inference server is explicitly configured. Model output may be wrong; a human must verify every recommendation. This feature does not save plans, contact leads or launch campaigns.</p>
+</section>
+<div class="section-heading" id="quick-start"><h2>What would you like to do today?</h2><p class="lede">Start with one task. Each action takes you to a real workspace section.</p></div>
+<div class="action-grid" aria-label="Quick actions"><a class="action-card" href="#leads"><span class="action-index">01</span><strong>Review my enquiries</strong><p>See actual CRM records and move a lead to the next authorized sales stage.</p><span class="action-link">Open leads →</span></a><a class="action-card" href="#add-form"><span class="action-index">02</span><strong>Add a new prospect</strong><p>Record a legitimate enquiry directly in your business workspace.</p><span class="action-link">Go to lead form →</span></a><a class="action-card" href="#services"><span class="action-index">03</span><strong>Explore upcoming tools</strong><p>See which audience, content and campaign connections are still pending.</p><span class="action-link">View capabilities →</span></a></div>
+<div class="section-heading"><h2>Your operations at a glance</h2><p class="lede">Verified CRM figures only. No fabricated reach, sales or campaign performance metrics.</p></div><div class="business-band"><div><span class="eyebrow">VERIFIED CRM LEADS</span><div class="workspace-identity" id="summary-lead-count" aria-live="polite">—</div><div class="business-detail">From the current authorized workspace</div></div><div><span class="tag tag-live">CRM connected</span><p class="business-detail">Marketing channels: not connected</p></div></div><div class="grid"><div class="card feature"><span class="tag tag-live">LIVE CRM</span><strong>My sales leads</strong><p>View and manage real CRM records for your authorized business.</p><a href="#leads">Open my pipeline →</a></div><div class="card feature"><span class="tag">INTEGRATION PENDING</span><strong>Audience intelligence</strong><p>Mayur's independent processing engine is not yet connected here.</p><a href="#services">See planned tools →</a></div><div class="card feature" id="creative-feature-card"><span class="tag tag-pending" id="creative-feature-status" role="status" aria-live="polite">CHECKING CONNECTION</span><strong>Creative Studio</strong><p id="creative-feature-description">Check your authorized business connection and prepare a creative brief.</p><a href="#creative-studio" id="creative-feature-link">Open Creative Studio →</a></div></div></section><section id="journey" class="card" aria-labelledby="journey-title"><div class="section-heading" style="margin-top:0"><h2 id="journey-title">One workflow, clear next steps</h2><p class="lede">Matrix 360 is building a connected marketing lifecycle. CRM lead management is live. Creative Studio checks availability separately for each authorized business.</p></div><ol class="journey-list"><li><span class="tag tag-pending">Not connected</span><strong>1. Understand your market</strong><span class="description">Competitor and customer intelligence</span></li><li><span class="tag tag-pending">Not connected</span><strong>2. Identify your audience</strong><span class="description">Mayur's independent data processing engine</span></li><li><span class="tag tag-pending" id="creative-journey-status">Checking connection</span><strong>3. Prepare content</strong><span class="description">Creative Studio checks capabilities per authorized business; campaign dispatch remains separate</span></li><li><span class="tag tag-live">Live CRM</span><strong>4. Manage the enquiry</strong><span class="description">Authorized business leads and pipeline stages</span></li></ol></section><section id="leads" class="card" aria-labelledby="pipeline-title"><div class="row"><div><h2 id="pipeline-title">My leads &amp; sales pipeline</h2><p class="lede">Only records from the selected authorized workspace appear below.</p></div><strong id="count">—</strong></div><div id="lead-list"><div class="empty">Loading authorized records…</div></div><h2 style="margin-top:29px">Add a lead</h2><form id="add-form"><div class="formrow"><div><label for="lead-name">Lead name</label><input id="lead-name" required maxlength="200"></div><div><label for="lead-source">Where did this lead come from?</label><input id="lead-source" maxlength="150" placeholder="e.g. Site enquiry"></div><div><label for="lead-stage">Current stage</label><select id="lead-stage"></select></div></div><button class="btn primary" style="margin-top:14px" type="submit">Save lead</button></form>
+<!-- SURGICAL INTEGRATION: MATRIX 360 MAPS LEAD SCRAPER V4 (FULL ZERO-GUESS B2B ENGINE) -->
+<div id="m360-maps-scraper-panel" class="m360-scraper-panel" style="margin-top: 32px; padding-top: 28px; border-top: 1px solid #e2e8f0;">
+  <!-- Top Header & Action Bar -->
+  <div style="display: flex; align-items: flex-start; justify-content: space-between; flex-wrap: wrap; gap: 12px; margin-bottom: 18px;">
+    <div>
+      <div style="display: inline-flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+        <h3 style="margin: 0; font-size: 1.18rem; font-weight: 800; color: #102a26;">Matrix360 B2B Audience Discovery &amp; Decision-Maker Engine</h3>
+        <span style="background: #e4f3ec; color: #0f6b5e; font-size: 0.72rem; font-weight: 700; padding: 3px 10px; border-radius: 999px; letter-spacing: 0.03em; text-transform: uppercase;">6-Tab Maps • DNS MX + CIN/GST Verified</span>
+        <span style="background: #fdf3e1; color: #966216; font-size: 0.72rem; font-weight: 700; padding: 3px 10px; border-radius: 999px;">Zero-guess verification · no fabricated records</span>
+      </div>
+      <p style="margin: 6px 0 0; font-size: 0.86rem; color: #4a635d;">
+        Extract real B2B companies across 51 East &amp; Northeast India industrial hubs, separate Pvt Ltd entities via MCA CIN / GSTIN, discover senior Decision Makers via LinkedIn X-Ray, and verify 100% of emails via live DNS MX records.
+      </p>
+    </div>
+    <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+      <button type="button" id="m360-scraper-suppression-toggle-btn" style="background: #ffffff; color: #334155; border: 1px solid #cbd5e1; border-radius: 10px; padding: 8px 13px; font-size: 0.8rem; font-weight: 600; cursor: pointer;">
+        Suppression List (<span id="m360-suppression-count-badge">0</span>)
+      </button>
+      <button type="button" id="m360-scraper-load-db-btn" style="background: #f8fafc; color: #0f172a; border: 1px solid #cbd5e1; border-radius: 10px; padding: 8px 13px; font-size: 0.8rem; font-weight: 600; cursor: pointer;">
+        Refresh Saved DB
+      </button>
+      <button type="button" id="m360-scraper-export-csv-btn" style="background: #0f6b5e; color: #ffffff; border: none; border-radius: 10px; padding: 8px 14px; font-size: 0.8rem; font-weight: 700; cursor: pointer;">
+        Download Verified CSV (26 Cols) →
+      </button>
+      <button type="button" id="m360-scraper-clear-db-btn" style="background: #fdecec; color: #9e2a2b; border: 1px solid #f9d7d7; border-radius: 10px; padding: 8px 12px; font-size: 0.8rem; font-weight: 600; cursor: pointer;">
+        Clear DB
+      </button>
+      <button type="button" id="m360-scraper-push-all-btn" style="display: none; background: #e6f4ef; color: #0f766e; border: 1px solid #99f6e4; border-radius: 10px; padding: 8px 14px; font-size: 0.8rem; font-weight: 700; cursor: pointer;">
+        + Push All to Pipeline
+      </button>
+    </div>
+  </div>
+
+  <!-- Configure Discovery Brief Card -->
+  <div style="background: #f8faf9; padding: 18px; border-radius: 14px; border: 1px solid #dce8e3; display: flex; flex-direction: column; gap: 14px;">
+    <!-- Row 1: Keywords, Geography, Strict Field Completeness Quota, Entity Constitution Target -->
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 14px; align-items: end;">
+      <div>
+        <label for="m360-scraper-query" style="display: block; font-size: 0.78rem; font-weight: 700; color: #102a26; margin-bottom: 5px;">Keywords / Target Industries (comma-separated)</label>
+        <input type="text" id="m360-scraper-query" placeholder="e.g. Manufacturing, warehouse, logistics, solar EPC" style="width: 100%; box-sizing: border-box; padding: 9px 12px; border: 1px solid #cbd5e1; border-radius: 10px; font-size: 0.83rem; background: #ffffff; color: #0f172a;" />
+      </div>
+      <div>
+        <label for="m360-scraper-location" style="display: block; font-size: 0.78rem; font-weight: 700; color: #102a26; margin-bottom: 5px;">Geography / Company HQ (auto-expands 51 hubs)</label>
+        <input type="text" id="m360-scraper-location" placeholder="e.g. West Bengal, Odisha, Kolkata, Bengaluru" style="width: 100%; box-sizing: border-box; padding: 9px 12px; border: 1px solid #cbd5e1; border-radius: 10px; font-size: 0.83rem; background: #ffffff; color: #0f172a;" />
+      </div>
+      <div>
+        <label for="m360-scraper-contact-filter" style="display: block; font-size: 0.78rem; font-weight: 700; color: #0f6b5e; margin-bottom: 5px;">Strict Field Completeness Quota</label>
+        <select id="m360-scraper-contact-filter" style="width: 100%; box-sizing: border-box; padding: 9px 10px; border: 1px solid #cbd5e1; border-radius: 10px; font-size: 0.83rem; background: #ffffff; color: #0f172a; font-weight: 600;">
+          <option value="both" selected>Require BOTH Verified Email (MX) + Valid Phone</option>
+          <option value="email">Require Verified Email (MX) Only</option>
+          <option value="phone">Require Validated Phone Number Only</option>
+          <option value="either">Require EITHER Verified Email OR Valid Phone</option>
+        </select>
+      </div>
+      <div>
+        <label for="m360-scraper-entity-filter" style="display: block; font-size: 0.78rem; font-weight: 700; color: #966216; margin-bottom: 5px;">Entity Constitution Target</label>
+        <select id="m360-scraper-entity-filter" style="width: 100%; box-sizing: border-box; padding: 9px 10px; border: 1px solid #cbd5e1; border-radius: 10px; font-size: 0.83rem; background: #ffffff; color: #0f172a; font-weight: 600;">
+          <option value="all" selected>All Entities (Pvt Ltd + Others)</option>
+          <option value="pvt_ltd">Only Pvt Ltd Companies</option>
+          <option value="other">Only Other Companies (LLP/Ltd/Prop)</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Row 2: Decision-Maker Job Titles, Exclusions, Company Headcount Range, Verified Quota (1-2000), Pipeline Stage & Start/Stop -->
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 14px; align-items: end; padding-top: 12px; border-top: 1px solid #e2ebe7;">
+      <div style="min-width: 0;">
+        <label for="m360-scraper-titles" style="display: block; font-size: 0.78rem; font-weight: 700; color: #102a26; margin-bottom: 5px;">Decision-Maker Job Titles</label>
+        <input type="text" id="m360-scraper-titles" value="Founder, Owner, MD, CEO, Director, Partner, COO, Plant Head, Expansion Head, Logistics Head" style="width: 100%; box-sizing: border-box; padding: 9px 12px; border: 1px solid #cbd5e1; border-radius: 10px; font-size: 0.82rem; background: #ffffff; color: #0f172a;" />
+      </div>
+      <div style="min-width: 0;">
+        <label for="m360-scraper-exclusions" style="display: block; font-size: 0.78rem; font-weight: 700; color: #102a26; margin-bottom: 5px;">Exclusions (Industries &amp; Junior Roles)</label>
+        <input type="text" id="m360-scraper-exclusions" value="IT, consulting, marketing, recruitment, BFSI, education, junior roles" style="width: 100%; box-sizing: border-box; padding: 9px 12px; border: 1px solid #cbd5e1; border-radius: 10px; font-size: 0.82rem; background: #ffffff; color: #0f172a;" />
+      </div>
+      <div style="min-width: 0;">
+        <label for="m360-scraper-company-size" style="display: block; font-size: 0.78rem; font-weight: 700; color: #102a26; margin-bottom: 5px;">Company Headcount Range</label>
+        <select id="m360-scraper-company-size" style="width: 100%; box-sizing: border-box; padding: 9px 10px; border: 1px solid #cbd5e1; border-radius: 10px; font-size: 0.82rem; background: #ffffff; color: #0f172a;">
+          <option value="11–50 to 1,001–5,000" selected>11–50 through 1,001–5,000</option>
+          <option value="11–50 to 200">11–50 through 51–200</option>
+          <option value="201–500 to 5,000">201–500 through 1,001–5,000</option>
+        </select>
+      </div>
+      <div style="min-width: 0;">
+        <label for="m360-scraper-limit" style="display: block; font-size: 0.78rem; font-weight: 700; color: #102a26; margin-bottom: 5px; white-space: nowrap;">Verified Quota (max 2,000)</label>
+        <div style="display: flex; gap: 8px; align-items: center; width: 100%; box-sizing: border-box;">
+          <input type="range" id="m360-scraper-slider" min="5" max="2000" step="5" value="200" style="flex: 1 1 auto; min-width: 60px; width: 100%; accent-color: #0f6b5e; cursor: pointer;" />
+          <input type="number" id="m360-scraper-limit" min="1" max="2000" value="200" style="width: 68px; flex: 0 0 68px; box-sizing: border-box; padding: 8px 6px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 0.82rem; text-align: center; font-weight: 700; background: #ffffff; color: #0f172a;" />
+        </div>
+      </div>
+      <div style="min-width: 0;">
+        <label for="m360-scraper-stage" style="display: block; font-size: 0.78rem; font-weight: 700; color: #102a26; margin-bottom: 5px;">Initial Stage &amp; Launch</label>
+        <div style="display: flex; gap: 8px; align-items: center; width: 100%;">
+          <input type="checkbox" id="m360-scraper-pvt-ltd-only" style="display:none;" />
+          <input type="checkbox" id="m360-scraper-enrich" checked style="display:none;" />
+          <input type="checkbox" id="m360-scraper-apply-suppression" checked style="display:none;" />
+          <select id="m360-scraper-stage" title="Initial CRM stage" style="flex: 0 0 96px; width: 96px; padding: 9px 8px; border: 1px solid #cbd5e1; border-radius: 10px; font-size: 0.82rem; font-weight: 600; background: #ffffff; color: #0f172a;">
+            <option value="enquiry" selected>enquiry</option>
+            <option value="qualified">qualified</option>
+          </select>
+          <button type="button" id="m360-scraper-run-btn" style="flex: 1 1 auto; white-space: nowrap; background: #0f6b5e; color: #ffffff; border: none; border-radius: 10px; padding: 10px 14px; font-size: 0.84rem; font-weight: 700; cursor: pointer;">
+            Start Discovery →
+          </button>
+          <button type="button" id="m360-scraper-stop-btn" style="display: none; flex: 0 0 auto; background: #c87a19; color: #ffffff; border: none; border-radius: 10px; padding: 10px 12px; font-size: 0.82rem; font-weight: 700; cursor: pointer;">
+            Stop
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Evidence Boundary Note -->
+    <div style="background: #fdfaf2; border: 1px solid #efe3c2; border-radius: 10px; padding: 9px 13px; font-size: 0.77rem; color: #5c5338;">
+      <strong style="color: #3a3320;">Evidence boundary:</strong>
+      Entity type (<code>Pvt Ltd</code> vs <code>Other</code>) and Annual Turnover are extracted strictly from corporate websites, 21-digit MCA CIN / 15-digit GSTIN codes, and public B2B filings. Unpublished figures are marked <em>Not Disclosed</em>.
+    </div>
+  </div>
+
+  <!-- Collapsible Suppression List Manager Drawer -->
+  <div id="m360-suppression-drawer" style="display: none; margin-top: 14px; background: #ffffff; border: 1px solid #cbd5e1; border-radius: 12px; padding: 16px;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; flex-wrap: wrap; gap: 8px;">
+      <div>
+        <h4 style="margin: 0; font-size: 0.92rem; font-weight: 700; color: #0f172a;">Campaign Deduplication &amp; Suppression List</h4>
+        <p style="margin: 2px 0 0; font-size: 0.78rem; color: #64748b;">Paste emails, phone numbers, domains, or company names from previous campaigns or upload a .csv/.txt file. The scraper will strictly skip any matching candidate.</p>
+      </div>
+      <div style="display: flex; gap: 8px; align-items: center;">
+        <label style="background: #f1f5f9; color: #0f172a; border: 1px solid #cbd5e1; padding: 6px 11px; border-radius: 8px; font-size: 0.78rem; font-weight: 600; cursor: pointer;">
+          Upload CSV / TXT
+          <input type="file" id="m360-suppression-file-input" accept=".csv,.txt" style="display: none;" />
+        </label>
+        <button type="button" id="m360-suppression-clear-btn" style="background: #fef2f2; color: #b91c1c; border: 1px solid #fecaca; padding: 6px 11px; border-radius: 8px; font-size: 0.78rem; font-weight: 600; cursor: pointer;">
+          Clear All
+        </button>
+      </div>
+    </div>
+    <div style="display: grid; grid-template-columns: 1fr auto; gap: 10px; align-items: start;">
+      <textarea id="m360-suppression-textarea" rows="3" placeholder="name@company.com, +91 9876543210, exampledomain.com..." style="width: 100%; box-sizing: border-box; padding: 9px 12px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 0.82rem; font-family: monospace;"></textarea>
+      <button type="button" id="m360-suppression-add-btn" style="background: #0f6b5e; color: #ffffff; border: none; border-radius: 8px; padding: 10px 16px; font-size: 0.82rem; font-weight: 600; cursor: pointer; height: 100%;">
+        Save to Exclusion List →
+      </button>
+    </div>
+    <div id="m360-suppression-tags-wrap" style="margin-top: 10px; display: flex; flex-wrap: wrap; gap: 6px; max-height: 110px; overflow-y: auto;"></div>
+  </div>
+
+  <!-- 5 Metric Cards Row (Telemetry at a Glance) -->
+  <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(155px, 1fr)); gap: 12px; margin-top: 16px;">
+    <div style="background: #ffffff; border: 1px solid #dce8e3; border-radius: 12px; padding: 12px 14px;">
+      <div style="font-size: 0.68rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: #64748b;">VERIFIED QUOTA SAVED</div>
+      <div id="m360-stat-saved" style="font-size: 1.45rem; font-weight: 800; color: #0f6b5e; font-family: monospace; margin-top: 2px;">0</div>
+      <div style="font-size: 0.72rem; color: #64748b;">100% criteria matched</div>
+    </div>
+    <div style="background: #ffffff; border: 1px solid #dce8e3; border-radius: 12px; padding: 12px 14px;">
+      <div style="font-size: 0.68rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: #64748b;">CANDIDATES SCANNED</div>
+      <div id="m360-stat-scanned" style="font-size: 1.45rem; font-weight: 800; color: #102a26; font-family: monospace; margin-top: 2px;">0</div>
+      <div style="font-size: 0.72rem; color: #64748b;">Maps + Website crawled</div>
+    </div>
+    <div style="background: #ffffff; border: 1px solid #dce8e3; border-radius: 12px; padding: 12px 14px;">
+      <div style="font-size: 0.68rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: #64748b;">FILTERED / SKIPPED</div>
+      <div id="m360-stat-skipped" style="font-size: 1.45rem; font-weight: 800; color: #966216; font-family: monospace; margin-top: 2px;">0</div>
+      <div style="font-size: 0.72rem; color: #64748b;">Incomplete or excluded</div>
+    </div>
+    <div style="background: #ffffff; border: 1px solid #dce8e3; border-radius: 12px; padding: 12px 14px;">
+      <div style="font-size: 0.68rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: #64748b;">ELAPSED RUNTIME</div>
+      <div id="m360-scraper-elapsed" style="font-size: 1.2rem; font-weight: 800; color: #102a26; font-family: monospace; margin-top: 4px;">00m 00s</div>
+      <div style="font-size: 0.72rem; color: #64748b;">Active session clock</div>
+    </div>
+    <div style="background: #ffffff; border: 1px solid #dce8e3; border-radius: 12px; padding: 12px 14px;">
+      <div style="font-size: 0.68rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: #64748b;">EXPECTED COMPLETION</div>
+      <div id="m360-scraper-eta" style="font-size: 1.2rem; font-weight: 800; color: #0f6b5e; font-family: monospace; margin-top: 4px;">--</div>
+      <div id="m360-scraper-eta-detail" style="font-size: 0.72rem; color: #64748b;">Idle</div>
+    </div>
+  </div>
+
+  <!-- Live Progress Stream & Entity/Field Filter Bar -->
+  <div id="m360-scraper-progress-wrap" style="margin-top: 12px; background: #ffffff; border: 1px solid #dce8e3; border-radius: 12px; padding: 14px 16px;">
+    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; margin-bottom: 8px;">
+      <div style="display: flex; align-items: center; gap: 8px;">
+        <span id="m360-status-dot" style="width: 10px; height: 10px; border-radius: 999px; background: #11694b; display: inline-block;"></span>
+        <span id="m360-scraper-phase-badge" style="background: #e4f3ec; color: #0f6b5e; font-size: 0.72rem; font-weight: 700; padding: 2px 8px; border-radius: 999px;">Ready</span>
+        <span id="m360-scraper-phase-text" style="font-size: 0.8rem; font-family: monospace; font-weight: 600; color: #102a26;">Ready. 6-Tab Live Streaming + Factual Turnover &amp; Entity Engine active.</span>
+      </div>
+      <div style="display: flex; align-items: center; gap: 10px;">
+        <span id="m360-scraper-progress-stats" style="font-size: 0.76rem; color: #475569; font-weight: 600;">0 / 0 Verified Leads</span>
+        <span id="m360-scraper-percent" style="background: #e4f3ec; color: #0f6b5e; font-size: 0.75rem; font-weight: 700; padding: 3px 10px; border-radius: 999px; font-family: monospace;">Progress: 0%</span>
+      </div>
+    </div>
+    <div style="width: 100%; height: 10px; background: #eaf2ee; border-radius: 999px; overflow: hidden; border: 1px solid #d5e3dd;">
+      <div id="m360-scraper-progress-bar" style="width: 0%; height: 100%; background: #0f6b5e; border-radius: 999px; transition: width 0.25s ease;"></div>
+    </div>
+
+    <!-- Entity Separation Tabs + Field Verification Checkboxes -->
+    <div style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; margin-top: 12px; padding-top: 12px; border-top: 1px solid #e8f0ec;">
+      <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 6px;">
+        <span style="font-size: 0.7rem; font-weight: 700; text-transform: uppercase; color: #5a6e69; margin-right: 4px;">Entity View:</span>
+        <button type="button" class="m360-entity-tab" data-tab="all" style="padding: 6px 12px; border-radius: 8px; font-size: 0.78rem; font-weight: 700; background: #0f6b5e; color: #ffffff; border: 1px solid #0f6b5e; cursor: pointer;">All Companies</button>
+        <button type="button" class="m360-entity-tab" data-tab="pvt_ltd" style="padding: 6px 12px; border-radius: 8px; font-size: 0.78rem; font-weight: 600; background: #f3f8f5; color: #102a26; border: 1px solid #d5e3dd; cursor: pointer;">Pvt Ltd Only</button>
+        <button type="button" class="m360-entity-tab" data-tab="other" style="padding: 6px 12px; border-radius: 8px; font-size: 0.78rem; font-weight: 600; background: #f3f8f5; color: #102a26; border: 1px solid #d5e3dd; cursor: pointer;">Other Companies (Public Ltd / LLP / Proprietorship)</button>
+      </div>
+      <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 8px; font-size: 0.78rem;">
+        <label style="display: inline-flex; align-items: center; gap: 5px; background: #f6faf8; border: 1px solid #d5e3dd; padding: 5px 10px; border-radius: 8px; cursor: pointer; font-weight: 600; color: #102a26;">
+          <input type="checkbox" id="m360-filter-turnover" style="accent-color: #0f6b5e;" />
+          <span>Has Disclosed Turnover</span>
+        </label>
+        <label style="display: inline-flex; align-items: center; gap: 5px; background: #f6faf8; border: 1px solid #d5e3dd; padding: 5px 10px; border-radius: 8px; cursor: pointer; font-weight: 600; color: #102a26;">
+          <input type="checkbox" id="m360-filter-dm" style="accent-color: #0f6b5e;" />
+          <span>Has Decision Maker</span>
+        </label>
+        <label style="display: inline-flex; align-items: center; gap: 5px; background: #f6faf8; border: 1px solid #d5e3dd; padding: 5px 10px; border-radius: 8px; cursor: pointer; font-weight: 600; color: #102a26;">
+          <input type="checkbox" id="m360-filter-email" style="accent-color: #0f6b5e;" />
+          <span>Verified Email (MX)</span>
+        </label>
+        <label style="display: inline-flex; align-items: center; gap: 5px; background: #f6faf8; border: 1px solid #d5e3dd; padding: 5px 10px; border-radius: 8px; cursor: pointer; font-weight: 600; color: #102a26;">
+          <input type="checkbox" id="m360-filter-phone" style="accent-color: #0f6b5e;" />
+          <span>Valid Phone</span>
+        </label>
+      </div>
+    </div>
+  </div>
+
+  <!-- Status Banner -->
+  <div id="m360-scraper-status" style="display: none; margin-top: 12px; padding: 10px 14px; border-radius: 10px; font-size: 0.84rem; font-weight: 500;"></div>
+
+  <!-- Enriched 8-Column B2B Prospects Table -->
+  <div id="m360-scraper-results-wrap" style="margin-top: 16px; border: 1px solid #dce8e3; border-radius: 12px; overflow: hidden; background: #ffffff;">
+    <div style="background: #fafcfb; padding: 12px 16px; border-bottom: 1px solid #e8f0ec; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+      <div style="display: flex; align-items: center; gap: 10px;">
+        <span id="m360-scraper-results-title" style="font-size: 0.88rem; font-weight: 800; color: #102a26;">Authorized Prospect Database</span>
+        <span id="m360-scraper-results-count" style="font-size: 0.76rem; color: #0f6b5e; background: #e4f3ec; padding: 2px 9px; border-radius: 999px; font-weight: 700;">0 results</span>
+        <span id="m360-scraper-suppressed-info" style="font-size: 0.75rem; color: #64748b;"></span>
+      </div>
+      <div style="display: flex; align-items: center; gap: 8px;">
+        <input type="text" id="m360-scraper-table-search" placeholder="Search company, DM, CIN/GST, email, city..." style="padding: 6px 11px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 0.78rem; width: 250px;" />
+      </div>
+    </div>
+    <div style="overflow-x: auto; max-height: 480px; overflow-y: auto;">
+      <table style="width: 100%; border-collapse: collapse; font-size: 0.82rem; text-align: left;">
+        <thead>
+          <tr style="border-bottom: 1px solid #e1ece7; color: #4a635d; background: #f3f8f5; font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; position: sticky; top: 0; z-index: 1;">
+            <th style="padding: 11px 13px;">Company &amp; HQ</th>
+            <th style="padding: 11px 13px;">Entity Type &amp; Turnover</th>
+            <th style="padding: 11px 13px;">Decision Maker (Role &amp; LinkedIn)</th>
+            <th style="padding: 11px 13px;">Verified Email (DNS MX)</th>
+            <th style="padding: 11px 13px;">Validated Phone</th>
+            <th style="padding: 11px 13px;">Size &amp; Industry</th>
+            <th style="padding: 11px 13px;">Website &amp; Socials</th>
+            <th style="padding: 11px 13px; text-align: right;">Pipeline Action</th>
+          </tr>
+        </thead>
+        <tbody id="m360-scraper-results-tbody"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+</section><section id="services" class="card" aria-labelledby="services-title"><h2 id="services-title">More ways we can help</h2><p>These services are being connected independently. They will appear here only when permissions and deployment testing are complete.</p><div class="grid"><div class="feature"><strong>Audience data</strong><p>Upload, clean, classify and export datasets.</p><span class="tag">Not connected</span></div><div class="feature"><strong>Creative production</strong><p id="creative-service-description">Review creative directions when your authorized Social Manager connection is available.</p><span class="tag tag-pending" id="creative-service-status">Checking connection</span></div><div class="feature"><strong>Campaign operations</strong><p>Prepare approved outreach, with human oversight.</p><span class="tag">Not connected</span></div></div></section></div></main></div><script src="matrix360-api-config.js"></script><script src="matrix360-growth-brief.js"></script><script src="matrix360-ai-plan.js"></script><script src="matrix360-goal-handoff.js" defer></script><script src="matrix360-creative.js"></script><script src="matrix360-media-verify.js"></script><script src="matrix360-media.js"></script><script src="matrix360-ai-post.js"></script><script src="matrix360-brand.js"></script><script src="client-dashboard.js"></script><script src="matrix360-maps-scraper.js"></script></body></html>

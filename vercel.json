@@ -1,1 +1,258 @@
-{"version":2,"cleanUrls":false,"headers":[{"source":"/(.*)","headers":[{"key":"X-Content-Type-Options","value":"nosniff"},{"key":"Referrer-Policy","value":"strict-origin-when-cross-origin"}]}]}
+{
+  "version": 2,
+  "rewrites": [
+    {
+      "source": "/api/preview-original",
+      "destination": "/api/creative-integrated?mode=original-preview"
+    },
+    {
+      "source": "/api/crm/:path*",
+      "destination": "/api/gateway?kind=crm&path=:path*"
+    },
+    {
+      "source": "/api/scraper/:path*",
+      "destination": "/api/maps-noguard-v2?path=:path*"
+    },
+    {
+      "source": "/api/creative",
+      "destination": "/api/creative"
+    },
+    {
+      "source": "/api/creative-media",
+      "destination": "/api/creative-media"
+    },
+    {
+      "source": "/api/ai-post",
+      "destination": "/api/ai-post"
+    },
+    {
+      "source": "/api/control-center",
+      "destination": "/api/control-center"
+    },
+    {
+      "source": "/api/brand",
+      "destination": "/api/brand"
+    },
+    {
+      "source": "/api/onboarding",
+      "destination": "/api/product-ui?mode=onboarding"
+    },
+    {
+      "source": "/api/poster-history",
+      "destination": "/api/product-ui?mode=poster_history"
+    },
+    {
+      "source": "/api/marketing/:path*",
+      "destination": "/api/marketing?path=:path*"
+    },
+    {
+      "source": "/api/marketing",
+      "destination": "/api/marketing"
+    },
+    {
+      "source": "/matrix360-maps-scraper.js",
+      "destination": "/api/maps-js-overlay?file=matrix360-maps-scraper.js"
+    },
+    {
+      "source": "/",
+      "destination": "/api/creative-integrated?mode=page&file=index.html"
+    },
+    {
+      "source": "/index.html",
+      "destination": "/api/creative-integrated?mode=page&file=index.html"
+    },
+    {
+      "source": "/login.html",
+      "destination": "/api/creative-integrated?mode=page&file=login.html"
+    },
+    {
+      "source": "/app.html",
+      "destination": "/api/creative-integrated?mode=page&file=app.html"
+    },
+    {
+      "source": "/platform.html",
+      "destination": "/api/creative-integrated?mode=page&file=platform.html"
+    },
+    {
+      "source": "/pricing.html",
+      "destination": "/api/creative-integrated?mode=page&file=pricing.html"
+    },
+    {
+      "source": "/solutions.html",
+      "destination": "/api/creative-integrated?mode=page&file=solutions.html"
+    },
+    {
+      "source": "/api/reel-motion",
+      "destination": "/api/creative-integrated?mode=motion"
+    },
+    {
+      "source": "/api/reel-library",
+      "destination": "/api/creative-integrated?mode=library"
+    },
+    {
+      "source": "/m360-integrated-motion.js",
+      "destination": "/api/creative-integrated?mode=motion-js"
+    },
+    {
+      "source": "/m360-integrated-library.js",
+      "destination": "/api/creative-integrated?mode=library-js"
+    },
+    {
+      "source": "/m360-product-ui.js",
+      "destination": "/api/product-ui"
+    },
+    {
+      "source": "/matrix360-ai-post.js",
+      "destination": "/api/product-ui?mode=post"
+    },
+    {
+      "source": "/api/crm-lead-delete",
+      "destination": "/api/product-ui?mode=delete"
+    },
+    {
+      "source": "/m360-pipeline-remove.js",
+      "destination": "/api/product-ui?mode=pipeline"
+    },
+    {
+      "source": "/m360-nav-fix.js",
+      "destination": "/api/product-ui?mode=nav"
+    },
+    {
+      "source": "/m360-scraper-control-guard.js",
+      "destination": "/api/product-ui?mode=scraper"
+    },
+    {
+      "source": "/m360-hotfix-client.js",
+      "destination": "/api/product-ui?mode=hotfix"
+    },
+    {
+      "source": "/lib/m360-multipage-router.js",
+      "destination": "/lib/m360-multipage-router.js"
+    },
+    {
+      "source": "/m360-multipage-router.js",
+      "destination": "/lib/m360-multipage-router.js"
+    },
+    {
+      "source": "/api/unified-leads-agent",
+      "destination": "/api/product-ui?mode=leads_server"
+    },
+    {
+      "source": "/lib/m360-unified-leads-subagent.js",
+      "destination": "/api/product-ui?mode=leads_subagent"
+    },
+    {
+      "source": "/m360-unified-leads-subagent.js",
+      "destination": "/api/product-ui?mode=leads_subagent"
+    },
+    {
+      "source": "/m360-marketing-client.js",
+      "destination": "/api/product-ui?mode=marketing_client"
+    },
+    {
+      "source": "/dashboard",
+      "destination": "/api/creative-integrated?mode=dashboard"
+    },
+    {
+      "source": "/leads",
+      "destination": "/api/creative-integrated?mode=dashboard"
+    },
+    {
+      "source": "/content",
+      "destination": "/api/creative-integrated?mode=dashboard"
+    },
+    {
+      "source": "/profile",
+      "destination": "/api/creative-integrated?mode=dashboard"
+    },
+    {
+      "source": "/marketing",
+      "destination": "/api/creative-integrated?mode=dashboard"
+    },
+    {
+      "source": "/client-dashboard.html",
+      "destination": "/api/creative-integrated?mode=dashboard"
+    },
+    {
+      "source": "/:path*",
+      "destination": "/api/preview?file=:path*"
+    }
+  ],
+  "headers": [
+    {
+      "source": "/api/(.*)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "private, no-store"
+        },
+        {
+          "key": "X-Content-Type-Options",
+          "value": "nosniff"
+        },
+        {
+          "key": "Content-Security-Policy",
+          "value": "default-src 'self'; script-src 'self' 'unsafe-inline' https://vercel.live https://*.vercel.live; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: blob: https:; connect-src 'self' https:; object-src 'none'; base-uri 'self'; frame-ancestors 'none'; form-action 'self'; upgrade-insecure-requests"
+        },
+        {
+          "key": "Permissions-Policy",
+          "value": "camera=(), microphone=(), geolocation=(), payment=(), usb=()"
+        },
+        {
+          "key": "Strict-Transport-Security",
+          "value": "max-age=31536000; includeSubDomains"
+        },
+        {
+          "key": "X-Frame-Options",
+          "value": "DENY"
+        }
+      ]
+    },
+    {
+      "source": "/(.*)",
+      "headers": [
+        {
+          "key": "Referrer-Policy",
+          "value": "strict-origin-when-cross-origin"
+        },
+        {
+          "key": "X-Content-Type-Options",
+          "value": "nosniff"
+        },
+        {
+          "key": "Content-Security-Policy",
+          "value": "default-src 'self'; script-src 'self' 'unsafe-inline' https://vercel.live https://*.vercel.live; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: blob: https:; connect-src 'self' https:; object-src 'none'; base-uri 'self'; frame-ancestors 'none'; form-action 'self'; upgrade-insecure-requests"
+        },
+        {
+          "key": "Permissions-Policy",
+          "value": "camera=(), microphone=(), geolocation=(), payment=(), usb=()"
+        },
+        {
+          "key": "Strict-Transport-Security",
+          "value": "max-age=31536000; includeSubDomains"
+        },
+        {
+          "key": "X-Frame-Options",
+          "value": "DENY"
+        }
+      ]
+    }
+  ],
+  "functions": {
+    "api/*.js": {
+      "includeFiles": "frontend-source/**"
+    },
+    "api/creative-integrated.js": {
+      "maxDuration": 120
+    },
+    "api/product-ui.js": {
+      "maxDuration": 60
+    },
+    "api/ai-post.js": {
+      "maxDuration": 120
+    },
+    "api/control-center.js": {
+      "maxDuration": 60
+    }
+  }
+}
