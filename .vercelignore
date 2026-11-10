@@ -1,11 +1,13 @@
-.git/
-.env
-.env.*
-.vercel/
-tests/
-data/
-output/
-*.log
-*.db
-*.sqlite*
-.release-tools/
+# Only the canonical application source and minimal public directory deploy.
+*
+!api/
+!api/**
+!lib/
+!lib/**
+!frontend-source/
+!frontend-source/**
+!public/
+!public/**
+!vercel.json
+!package.json
+!package-lock.json

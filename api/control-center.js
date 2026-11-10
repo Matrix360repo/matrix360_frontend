@@ -5,6 +5,8 @@ const { createHash, randomUUID } = require('node:crypto');
 
 
 const { validate, ROUTES } = require('../lib/m360-control-contract');
+const { campaignClarifications, isMarketingCampaignIntent } = require('../lib/m360-campaign-clarifications');
+const resolveOverviewIntent=require('../lib/m360-overview-intent');
 
 const CRM = 'https://matrix360-crm-backend-p9os.onrender.com';
 
@@ -74,38 +76,36 @@ const {readWorkspaceProfile:authorizedBrandSnapshot,leadSearchContext}=require('
 
 
 async function verifySessionAndWorkspaces(bearer) {
-
-  try {
-
-    const res = await fetch(`${CRM}/me/workspaces`, {
-
-      headers: { Authorization: bearer, Accept: 'application/json' },
-
-      redirect: 'error',
-
-      signal: AbortSignal.timeout(10000)
-
-    });
-
-    if (res.status === 401 || res.status === 403) return { status: 401 };
-
-    if (!res.ok) return { status: 503, message: 'CRM backend is temporarily unavailable' };
-
-    const list = await res.json();
-
-    if (!Array.isArray(list)) return { status: 503, message: 'Invalid CRM response' };
-
-    return { status: 200, workspaces: list };
-
-  } catch (err) {
-
-    return { status: 503, message: 'Could not contact CRM authentication service. Please retry.' };
-
+  if (process.env.M360_SHOWCASE_ENABLED === 'true' && bearer === 'Bearer matrix360-isolated-showcase') {
+    return { status: 200, workspaces: [{ id: 'showcase', name: 'Northstar Industries — Demo', role: 'platform_owner', approved_facts: ['Fictional showcase workspace'] }] };
   }
-
+  // Retry only this read: a transient CRM failure must not repeat AI or discovery work.
+  for (let attempt = 0; attempt < 2; attempt++) {
+    try {
+      const res = await fetch(`${CRM}/me/workspaces`, {
+        headers: { Authorization: bearer, Accept: 'application/json' },
+        cache: 'no-store',
+        redirect: 'error',
+        signal: AbortSignal.timeout(15000)
+      });
+      if (res.status === 401 || res.status === 403) return { status: 401 };
+      if (!res.ok) {
+        if (attempt === 0 && [502, 503, 504].includes(res.status)) {
+          await res.body?.cancel();
+          continue;
+        }
+        return { status: 503, message: 'CRM backend is temporarily unavailable. Please retry.' };
+      }
+      const list = await res.json();
+      if (!Array.isArray(list)) return { status: 503, message: 'Invalid CRM response' };
+      return { status: 200, workspaces: list };
+    } catch (err) {
+      if (err.name === 'SyntaxError') return { status: 503, message: 'Invalid CRM response' };
+      if (attempt === 0) continue;
+      return { status: 503, message: 'Could not contact CRM authentication service after retrying. Please retry shortly.' };
+    }
+  }
 }
-
-
 
 const RESPONSE_SCHEMA = {
 
@@ -375,6 +375,8 @@ Rules of Conduct:
 - A request to plan WhatsApp, email, LinkedIn or multichannel outreach belongs to marketing_activation. Market-entry and prioritization decisions belong to business_strategy.
 - For campaign requests, the system automatically pulls available CRM leads and creative studio assets during execution. Do not ask redundant questions regarding lead count or tone if core audience and offer are provided. Keep missing_information to at most 1-2 strictly essential items only if core objectives are genuinely unknown.
 - Ask no more than one clarification in any response. Prefer saved business-profile facts and reasonable, explicitly labelled assumptions over questionnaire-style interrogation.
+- Company Details is the primary source for business identity, industry, products/services, approved offers, audiences, service areas, objectives, preferred channels, budget cap and duration. Never ask for a value already present there.
+- Across an entire campaign conversation ask at most seven campaign questions. Only objective, offer, audience, geography, timing and paid-media cap can block preparation; recommend channels and tone from approved context unless the client specifies them.
 
 - Return strict JSON matching the schema.`;
 
@@ -771,6 +773,25 @@ module.exports = async (req, res) => {
       validate(parsed, RESPONSE_SCHEMA);
 
       parsed.missing_information = parsed.missing_information.slice(0, 1);
+      const route=resolveOverviewIntent(rawMessage).kind;
+      const creative=['reel','image','copy','content'].includes(route);
+      if (!creative&&isMarketingCampaignIntent(rawMessage, parsed)) {
+        const requiredCampaignQuestions = campaignClarifications(rawMessage, brandProfile || {});
+        parsed.missing_information = requiredCampaignQuestions.slice(0, 1);
+        if (parsed.missing_information.length) {
+          parsed.category = 'clarification_required';
+          parsed.answer = parsed.missing_information[0];
+          parsed.engine_handover.required = false;
+        } else if (parsed.category === 'clarification_required') {
+          parsed.category = 'marketing_activation';
+          parsed.engine_handover.required = true;
+          parsed.engine_handover.primary_engine = 'marketing_activation';
+          parsed.engine_handover.workflow = ['marketing_activation'];
+          parsed.engine_handover.task_title = parsed.engine_handover.task_title || 'Prepare marketing campaign';
+          parsed.engine_handover.task_summary = parsed.engine_handover.task_summary || rawMessage;
+          parsed.engine_handover.expected_outputs = parsed.engine_handover.expected_outputs?.length ? parsed.engine_handover.expected_outputs : ['Reviewable campaign plan'];
+        }
+      }
 
       const leadIntent=/\b(find|search|get|generate)\b[\s\S]*\b(leads?|prospects?|customers?|manufacturers?|dentists?)\b/i.test(rawMessage);
       if(leadIntent&&parsed.engine_handover.primary_engine==='lead_pipeline'&&parsed.category!=='unsupported'){
@@ -985,7 +1006,7 @@ module.exports = async (req, res) => {
 
 
 
-        if (parsed.category === 'marketing_activation' || parsed.engine_handover?.primary_engine === 'marketing_activation' || /\b(marketing\s+campaign|launch\s+(?:a\s+)?campaign|multichannel\s+campaign|promote\s+my\s+business|outreach\s+campaign)\b/i.test(rawMessage)) {
+        if (parsed.engine_handover?.primary_engine === 'marketing_activation' && !['reel','image','copy','content'].includes(resolveOverviewIntent(rawMessage).kind)) {
       responsePayload.sub_agent_delegation = 'M360MarketingSubAgent';
       if (!parsed.missing_information?.length) {
         responsePayload.engine_handover.required = true;
@@ -995,7 +1016,7 @@ module.exports = async (req, res) => {
           responsePayload.engine_handover.workflow = ['lead_pipeline', 'content_creation', 'marketing_activation'];
         }
       }
-    } else if (parsed.category === 'lead_pipeline' || parsed.engine_handover?.primary_engine === 'lead_pipeline' || /\b(lead|leads|scrape|scraper|prospect|pipeline|qualification|discovery)\b/i.test(rawMessage)) {
+    } else if (parsed.engine_handover?.primary_engine === 'lead_pipeline') {
       responsePayload.sub_agent_delegation = 'M360LeadsSubAgent';
     }
 

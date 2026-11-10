@@ -1,8 +1,8 @@
-(()=>{'use strict';const API=window.Matrix360ApiBase;const $=id=>document.getElementById(id);let token=null,expiresAt=0;try{token=sessionStorage.getItem('matrix360_pilot_token');expiresAt=Number(sessionStorage.getItem('matrix360_pilot_expires_at'));if(!token||!Number.isFinite(expiresAt)||expiresAt<=Date.now()){token=null;expiresAt=0;sessionStorage.removeItem('matrix360_pilot_token');sessionStorage.removeItem('matrix360_pilot_expires_at')}}catch{token=null;expiresAt=0}let workspace='',memberships=[],stages=[],generation=0,expiryTimer=null,workspaceReady=false;
+(()=>{'use strict';const API=window.Matrix360ApiBase;const $=id=>document.getElementById(id);let token=null,expiresAt=0,crmSummary=null;try{token=sessionStorage.getItem('matrix360_pilot_token');expiresAt=Number(sessionStorage.getItem('matrix360_pilot_expires_at'));if(!token||!Number.isFinite(expiresAt)||expiresAt<=Date.now()){token=null;expiresAt=0;sessionStorage.removeItem('matrix360_pilot_token');sessionStorage.removeItem('matrix360_pilot_expires_at')}}catch{token=null;expiresAt=0}let workspace='',memberships=[],stages=[],generation=0,expiryTimer=null,workspaceReady=false;
 const endSession=()=>{
   ++generation;
   if(expiryTimer!==null){clearTimeout(expiryTimer);expiryTimer=null;}
-  token=null;expiresAt=0;workspace='';memberships=[];stages=[];workspaceReady=false;
+  token=null;expiresAt=0;crmSummary=null;workspace='';memberships=[];stages=[];workspaceReady=false;
   if($('add-form')) $('add-form').querySelector('button[type=submit]').disabled=true;
   try{sessionStorage.removeItem('matrix360_pilot_token');sessionStorage.removeItem('matrix360_pilot_expires_at');}catch{}
   $('lead-list')?.replaceChildren();$('lead-stage')?.replaceChildren();$('workspace')?.replaceChildren();
@@ -37,6 +37,7 @@ $('add-form').querySelector('button[type=submit]').disabled=true;
 $('lead-list').replaceChildren(el('div','Checking authorized workspace records…'));
 $('count').textContent='—';
 if($('summary-lead-count'))$('summary-lead-count').textContent='—';
+crmSummary=null;
 document.dispatchEvent(new Event('m360:crm-evidence-invalidated'));
 status('Loading your workspace…');const key=encodeURIComponent(id);
 let ss, leads;
@@ -44,12 +45,19 @@ try {
  [ss,leads]=await Promise.all([api('/workspaces/'+key+'/stages'),api('/workspaces/'+key+'/leads')]);
 } catch (error) {
  if(seq!==generation)return; // A previous workspace's request must not overwrite the new workspace's status.
-$('lead-list').replaceChildren(el('div','This workspace could not be loaded. No previous business records are displayed. Please retry.'));
+const retry=el('button','Retry loading pipeline');
+retry.type='button';retry.className='btn';
+retry.addEventListener('click',()=>load().catch(e=>status(e.message,true)));
+$('lead-list').replaceChildren(el('p','CRM records could not be loaded. Please retry.'),retry);
+crmSummary={workspace:id,unavailable:true};
+document.dispatchEvent(new CustomEvent('m360:crm-unavailable',{detail:crmSummary}));
  throw error;
 }
 if(seq!==generation)return;if(!Array.isArray(ss)||!Array.isArray(leads))throw Error('Unexpected CRM response');stages=ss;$('lead-stage').replaceChildren(...ss.map(x=>new Option(x.replaceAll('_',' '),x)));
 workspaceReady=true;
-$('add-form').querySelector('button[type=submit]').disabled=false;$('count').textContent=leads.length+' leads';const leadSummary=$('summary-lead-count');if(leadSummary)leadSummary.textContent=leads.length+' '+(leads.length===1?'lead':'leads');const node=$('lead-list');node.replaceChildren();if(!leads.length){const none=el('div','No leads yet. Add your first lead using the form below.');none.className='empty';node.append(none)}else{const tbl=el('table');const head=el('thead');const hr=el('tr');for(const h of ['Lead','Source','Stage'])hr.append(el('th',h));head.append(hr);tbl.append(head);const body=el('tbody');for(const lead of leads){const tr=el('tr');tr.append(el('td',lead.name),el('td',lead.source||'—'));const cell=el('td');const sel=el('select');sel.setAttribute('aria-label','Stage for '+val(lead.name));for(const stage of ss)sel.append(new Option(stage.replaceAll('_',' '),stage));sel.value=lead.stage;sel.addEventListener('change',async()=>{sel.disabled=true;try{await api('/workspaces/'+encodeURIComponent(id)+'/leads/'+encodeURIComponent(lead.id),'PATCH',{stage:sel.value});await load()}catch(e){status(e.message,true)}finally{sel.disabled=false}});cell.append(sel);tr.append(cell);body.append(tr)}tbl.append(body);node.append(tbl)}status('Showing authorized CRM records.');document.dispatchEvent(new CustomEvent('m360:crm-loaded',{detail:{workspace:id,total:leads.length,stageCounts:leads.reduce((counts,lead)=>{const stage=String(lead.stage||'unknown');counts[stage]=(counts[stage]||0)+1;return counts},{})}}));}async function begin(){if(!token){denied('You must sign in with an approved client account.');return}try{memberships=await api('/me/workspaces');if(!Array.isArray(memberships)||!memberships.length)throw Error('No authorized client workspace is assigned to this account.');$('workspace').replaceChildren(...memberships.map(m=>new Option(m.name,m.id)));const switcher=$('workspace-selector-row'),business=$('workspace-single-name');if(switcher)switcher.classList.toggle('hidden',memberships.length===1);if(business)business.textContent=memberships.length===1?memberships[0].name:'Multiple authorized businesses';$('who').textContent='Client access verified';$('loading').classList.add('hidden');$('verified').classList.remove('hidden');await load()}catch(e){denied(e.message)}}$('workspace').addEventListener('change',()=>{++generation;document.dispatchEvent(new Event('m360:workspace-changing'));workspaceReady=false;stages=[];
+$('add-form').querySelector('button[type=submit]').disabled=false;$('count').textContent=leads.length+' leads';const leadSummary=$('summary-lead-count');if(leadSummary)leadSummary.textContent=leads.length+' '+(leads.length===1?'lead':'leads');const node=$('lead-list');node.replaceChildren();if(!leads.length){const none=el('div','No leads yet. Add your first lead using the form below.');none.className='empty';node.append(none)}else{const tbl=el('table');const head=el('thead');const hr=el('tr');for(const h of ['Lead','Source','Stage'])hr.append(el('th',h));head.append(hr);tbl.append(head);const body=el('tbody');for(const lead of leads){const tr=el('tr');tr.append(el('td',lead.name),el('td',lead.source||'—'));const cell=el('td');const sel=el('select');sel.setAttribute('aria-label','Stage for '+val(lead.name));for(const stage of ss)sel.append(new Option(stage.replaceAll('_',' '),stage));sel.value=lead.stage;tr.dataset.pipelineStage=lead.stage||'unknown';tr.dataset.pipelineSource=leadSourceCounts([lead])[0]?.label||'';sel.addEventListener('change',async()=>{sel.disabled=true;try{await api('/workspaces/'+encodeURIComponent(id)+'/leads/'+encodeURIComponent(lead.id),'PATCH',{stage:sel.value});await load()}catch(e){status(e.message,true)}finally{sel.disabled=false}});cell.append(sel);tr.append(cell);body.append(tr)}tbl.append(body);node.append(tbl)}status('Showing authorized CRM records.');crmSummary={workspace:id,total:leads.length,stages:ss,creationDays:leadCreationDays(leads),sources:leadSourceCounts(leads),stageCounts:leads.reduce((counts,lead)=>{const stage=String(lead.stage||'unknown');counts[stage]=(counts[stage]||0)+1;return counts},Object.create(null))};document.dispatchEvent(new CustomEvent('m360:crm-loaded',{detail:crmSummary}));}async function begin(){if(!token){denied('You must sign in with an approved client account.');return}try{memberships=await api('/me/workspaces');if(!Array.isArray(memberships)||!memberships.length)throw Error('No authorized client workspace is assigned to this account.');$('workspace').replaceChildren(...memberships.map(m=>new Option(m.name,m.id)));const switcher=$('workspace-selector-row'),business=$('workspace-single-name');if(switcher)switcher.classList.toggle('hidden',memberships.length===1);if(business)business.textContent=memberships.length===1?memberships[0].name:'Multiple authorized businesses';$('who').textContent='Client access verified';$('loading').classList.add('hidden');$('verified').classList.remove('hidden');}catch(e){denied(e.message);return;}
+await load().catch(e=>status(e.message,true));
+}$('workspace').addEventListener('change',()=>{++generation;document.dispatchEvent(new Event('m360:workspace-changing'));workspaceReady=false;stages=[];
 $('lead-stage').replaceChildren();
 $('add-form').reset();
 $('add-form').querySelector('button[type=submit]').disabled=true;
@@ -57,6 +65,38 @@ $('lead-list').replaceChildren(el('div','Loading authorized workspace records…
  if(!workspaceReady||!memberships.some(m=>m.id===workspace)||!stages.includes($('lead-stage').value))
   throw Error('Wait for the authorized workspace and its pipeline stages to finish loading.');
  await api('/workspaces/'+encodeURIComponent(workspace)+'/leads','POST',{name:$('lead-name').value.trim(),source:$('lead-source').value.trim()||null,stage:$('lead-stage').value});$('add-form').reset();await load()}catch(err){status(err.message,true)}});$('logout').addEventListener('click',async()=>{try{if(token)await api('/auth/logout','POST')}catch{}finally{sessionStorage.removeItem('matrix360_pilot_token');sessionStorage.removeItem('matrix360_pilot_expires_at');token=null;endSession();location.replace('login.html')}});if (window.Matrix360AI) window.Matrix360AI.mount({api, getWorkspace:()=>workspace});
+// Keep source labels and counts in the active workspace, without sending lead records to the overview.
+function leadSourceCounts(leads){
+ const labels=new Map([
+  ['csv import','CSV import'],['google maps','Google Maps'],['manual','Manual entry'],['manual entry','Manual entry'],
+  ['matrix 360 verified discovery','Matrix360 discovery'],['verified business listing','Verified business listing'],
+  ['website','Website'],['website enquiry','Website'],['referral','Referral'],['linkedin','LinkedIn']
+ ]);
+ const groups=new Map();
+ for(const lead of leads){
+  const value=typeof lead.source==='string'?lead.source.trim():'';
+  const category=value.split('|',1)[0].trim().toLowerCase().replace(/[_\s]+/g,' ');
+  // Discovery can store a contact name, phone, email and website in the source field.
+  const contact= /[|@]|https?:\/\/|^\+?[\d() .-]{7,}$/i.test(value);
+  const label=!value?'':labels.get(category)||(contact?'Contact details only':'Other recorded entries');
+  groups.set(label,(groups.get(label)||0)+1);
+ }
+ return [...groups].map(([label,count])=>({label,count}));
+}
+// Send only daily counts to the overview, without individual lead details.
+function leadCreationDays(leads, now=Date.now()){
+ const counts=Object.create(null);
+ for(const lead of leads){
+  const value=lead.created_at;
+  if(typeof value!=='string'||!/^\d{4}-\d{2}-\d{2}T/.test(value))continue;
+  const created=new Date(value);
+  if(!Number.isFinite(+created)||+created>now)continue;
+  const day=Date.UTC(created.getFullYear(),created.getMonth(),created.getDate())/86400000;
+  counts[day]=(counts[day]||0)+1;
+ }
+ return counts;
+}
+document.addEventListener('m360:request-crm-summary',()=>{if(crmSummary?.workspace===$('workspace').value)document.dispatchEvent(new CustomEvent('m360:crm-summary',{detail:crmSummary}));});
 begin()
 // Local, explainable goal guide. No API request and no session persistence.
 const goalGuide={

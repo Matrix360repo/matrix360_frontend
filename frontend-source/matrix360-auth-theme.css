@@ -1,0 +1,25 @@
+/* Sign-in shares the workspace appearance preference; the public site's choice stays separate. */
+html[data-m360-theme="light"]{color-scheme:light;--auth-bg:#f7f9f8;--auth-panel:#ffffff;--auth-soft:#edf4f2;--auth-text:#173338;--auth-muted:#51676d;--auth-line:#cfdfda;--auth-accent:#076f65;--auth-error:#8f1725;--auth-error-bg:#fff1f2}
+html[data-m360-theme="dark"]{color-scheme:dark;--auth-bg:#08171f;--auth-panel:#102831;--auth-soft:#142f39;--auth-text:#eaf3f3;--auth-muted:#acc3c7;--auth-line:#33505a;--auth-accent:#72e5cc;--auth-error:#ffd5da;--auth-error-bg:#48242c}
+html[data-m360-theme] body.m360-matched-auth{background:var(--auth-bg)!important;color:var(--auth-text)!important}
+html[data-m360-theme] body.m360-matched-auth :is(.shell,.formside){background:var(--auth-bg)!important;color:var(--auth-text)!important}
+html[data-m360-theme] body.m360-matched-auth .formside #form-title{font:800 36px/1.2 Manrope,system-ui,sans-serif;letter-spacing:-.035em;margin:9px 0;color:var(--auth-text)!important}
+html[data-m360-theme] body.m360-matched-auth .formside :is(.lede,.foot,.security-note,.divider,p[style]){color:var(--auth-muted)!important}
+html[data-m360-theme] body.m360-matched-auth .formside label{color:var(--auth-text)!important}
+html[data-m360-theme] body.m360-matched-auth :is(input,textarea,select,.tabs){background:var(--auth-panel)!important;color:var(--auth-text)!important;border-color:var(--auth-line)!important}
+html[data-m360-theme] body.m360-matched-auth :is(#signin,#signup) :is(input,textarea,select){background:var(--auth-panel)!important;color:var(--auth-text)!important;border-color:var(--auth-line)!important}
+html[data-m360-theme] body.m360-matched-auth :is(#signin,#signup) :is(input,textarea)::placeholder{color:var(--auth-muted)!important;opacity:1}
+html[data-m360-theme] body.m360-matched-auth :is(input,textarea)::placeholder{color:var(--auth-muted)!important;opacity:1}
+html[data-m360-theme] body.m360-matched-auth .tabs button{color:var(--auth-muted)!important;min-height:44px}
+html[data-m360-theme] body.m360-matched-auth .tabs button.active{background:var(--auth-soft)!important;color:var(--auth-accent)!important;box-shadow:none!important}
+html[data-m360-theme] body.m360-matched-auth .formside :is(a,.eyebrow){color:var(--auth-accent)!important}
+html[data-m360-theme] body.m360-matched-auth .guest{background:var(--auth-panel)!important;color:var(--auth-text)!important;border-color:var(--auth-line)!important}
+html[data-m360-theme] body.m360-matched-auth .primary{background:#076f65!important;color:white!important;box-shadow:none!important}
+html[data-m360-theme] body.m360-matched-auth .formside .error{background:var(--auth-error-bg)!important;color:var(--auth-error)!important;border-color:var(--auth-error)!important}
+html[data-m360-theme] body.m360-matched-auth .formside .success{color:var(--auth-accent)!important}
+html[data-m360-theme] body.m360-matched-auth .formside :focus-visible{outline:3px solid var(--auth-accent)!important;outline-offset:3px}
+html[data-m360-theme] body.m360-matched-auth #m360-theme-toggle{min-height:44px;padding:8px 12px;background:var(--auth-panel);border:1px solid var(--auth-line);color:var(--auth-text);border-radius:10px;font-size:12px;white-space:nowrap}
+html[data-m360-theme] body.m360-matched-auth #m360-theme-toggle[aria-checked=true]{background:var(--auth-soft);color:var(--auth-accent)}
+html[data-m360-theme] body.m360-matched-auth .topline{flex-wrap:wrap}
+@media(max-width:640px){html[data-m360-theme] body.m360-matched-auth .formside #form-title{font-size:30px}}
+@media(max-width:760px){body.m360-matched-auth .shell{display:flex;flex-direction:column}body.m360-matched-auth .formside{order:0;padding:24px 20px}body.m360-matched-auth .story{order:1;padding:28px 20px}body.m360-matched-auth .tagline{margin-top:20px}}

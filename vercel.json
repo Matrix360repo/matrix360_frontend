@@ -2,6 +2,14 @@
   "version": 2,
   "rewrites": [
     {
+      "source": "/api/market-research",
+      "destination": "/api/product-ui?mode=research_server"
+    },
+    {
+      "source": "/api/preview",
+      "destination": "/api/creative-integrated?mode=original-preview"
+    },
+    {
       "source": "/api/preview-original",
       "destination": "/api/creative-integrated?mode=original-preview"
     },
@@ -40,6 +48,10 @@
     {
       "source": "/api/poster-history",
       "destination": "/api/product-ui?mode=poster_history"
+    },
+    {
+      "source": "/api/document-qualification",
+      "destination": "/api/document-qualification"
     },
     {
       "source": "/api/marketing/:path*",
@@ -127,11 +139,11 @@
     },
     {
       "source": "/lib/m360-multipage-router.js",
-      "destination": "/lib/m360-multipage-router.js"
+      "destination": "/api/product-ui?mode=router"
     },
     {
       "source": "/m360-multipage-router.js",
-      "destination": "/lib/m360-multipage-router.js"
+      "destination": "/api/product-ui?mode=router"
     },
     {
       "source": "/api/unified-leads-agent",
@@ -175,7 +187,7 @@
     },
     {
       "source": "/:path*",
-      "destination": "/api/preview?file=:path*"
+      "destination": "/api/creative-integrated?mode=original-preview&file=:path*"
     }
   ],
   "headers": [
@@ -192,7 +204,7 @@
         },
         {
           "key": "Content-Security-Policy",
-          "value": "default-src 'self'; script-src 'self' 'unsafe-inline' https://vercel.live https://*.vercel.live; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: blob: https:; connect-src 'self' https:; object-src 'none'; base-uri 'self'; frame-ancestors 'none'; form-action 'self'; upgrade-insecure-requests"
+          "value": "default-src 'self'; script-src 'self' 'unsafe-inline' https://vercel.live https://*.vercel.live; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: blob: https:; media-src 'self' blob: https://*.supabase.co https://matrix360-socialmanager-recovery-staging.onrender.com; connect-src 'self' https:; object-src 'none'; base-uri 'self'; frame-ancestors 'none'; form-action 'self'; upgrade-insecure-requests"
         },
         {
           "key": "Permissions-Policy",
@@ -221,7 +233,7 @@
         },
         {
           "key": "Content-Security-Policy",
-          "value": "default-src 'self'; script-src 'self' 'unsafe-inline' https://vercel.live https://*.vercel.live; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: blob: https:; connect-src 'self' https:; object-src 'none'; base-uri 'self'; frame-ancestors 'none'; form-action 'self'; upgrade-insecure-requests"
+          "value": "default-src 'self'; script-src 'self' 'unsafe-inline' https://vercel.live https://*.vercel.live; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: blob: https:; media-src 'self' blob: https://*.supabase.co https://matrix360-socialmanager-recovery-staging.onrender.com; connect-src 'self' https:; object-src 'none'; base-uri 'self'; frame-ancestors 'none'; form-action 'self'; upgrade-insecure-requests"
         },
         {
           "key": "Permissions-Policy",
@@ -240,23 +252,25 @@
   ],
   "functions": {
     "api/creative-integrated.js": {
-      "includeFiles": "frontend-source/**",
-      "maxDuration": 120
+      "maxDuration": 300,
+      "includeFiles": "{frontend-source/**,lib/reel-font/**,node_modules/ffmpeg-static/ffmpeg}"
     },
     "api/product-ui.js": {
-      "maxDuration": 60
+      "maxDuration": 120,
+      "includeFiles": "lib/**"
     },
     "api/ai-post.js": {
+      "maxDuration": 120
+    },
+    "api/marketing.js": {
       "maxDuration": 120
     },
     "api/control-center.js": {
       "maxDuration": 60
     },
-    "api/preview.js": {
-      "includeFiles": "frontend-source/**"
-    },
     "api/maps-js-overlay.js": {
       "includeFiles": "frontend-source/**"
     }
-  }
+  },
+  "outputDirectory": "public"
 }

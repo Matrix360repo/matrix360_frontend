@@ -1,0 +1,21 @@
+'use strict';
+const test=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path');
+test('Vercel preview fits twelve functions and routes research to its authenticated handler',()=>{
+ const root=path.resolve(__dirname,'..'),config=require('../vercel.json');
+ assert.ok(fs.readdirSync(path.join(root,'api')).filter(name=>name.endsWith('.js')).length<=12);
+ assert.equal(config.rewrites.find(route=>route.source==='/api/market-research').destination,'/api/product-ui?mode=research_server');
+ assert.ok(config.functions['api/product-ui.js'].maxDuration>=120);
+ assert.equal(typeof require('../lib/m360-market-research'),'function');
+ assert.equal(typeof require('../api/creative-integrated'),'function');
+ assert.equal(config.outputDirectory,'public');
+ const policies=config.headers.flatMap(rule=>rule.headers).filter(header=>header.key==='Content-Security-Policy');
+ assert.ok(policies.length);
+ for(const policy of policies)assert.match(policy.value,/media-src 'self' blob: https:\/\/\*\.supabase\.co https:\/\/matrix360-socialmanager-recovery-staging\.onrender\.com;/);
+ assert.equal(fs.existsSync(path.join(root,'client-dashboard.html')),false,'Raw dashboard must not shadow the integrated route');
+ assert.equal(config.rewrites.find(route=>route.source==='/m360-multipage-router.js').destination,'/api/product-ui?mode=router');
+ assert.match(config.functions['api/creative-integrated.js'].includeFiles,/frontend-source\/\*\*.*lib\/reel-font\/\*\*.*node_modules\/ffmpeg-static\/ffmpeg/);
+ assert.ok(config.functions['api/creative-integrated.js'].maxDuration>=300);
+ const response={setHeader(){},end(value){this.body=value;}};
+ require('../api/product-ui')({method:'GET',query:{mode:'router'}},response);
+ assert.equal(response.body,fs.readFileSync(path.join(root,'lib/m360-multipage-router.js'),'utf8'));
+});

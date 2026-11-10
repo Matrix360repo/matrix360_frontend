@@ -30,7 +30,7 @@ test('demo profile and CRM edits remain browser-local and reject invalid version
 });
 test('showcase cannot call a real workspace, provider, upload or publishing endpoint',async()=>{
  const b=browser();
- for(const url of ['/api/crm/workspaces/northstar/leads','/api/ai-post','/api/unified-leads-agent','/api/marketing/send','https://example.com/private']){
+ for(const url of ['/api/crm/workspaces/lakhotia/leads','/api/ai-post','/api/unified-leads-agent','/api/marketing/send','https://example.com/private']){
   const response=await b.fetch(url,{method:'POST',body:'{}'});assert.equal(response.status,403);assert.match((await response.json()).message,/Showcase mode/);
  }
  assert.equal(b.calls,0);

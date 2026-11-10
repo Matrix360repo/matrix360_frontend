@@ -5,7 +5,8 @@
   const directFallback = 'https://matrix360-crm-backend-p9os.onrender.com';
   // On a deployed HTTPS website, route requests through the same-origin Vercel rewrite.
   // This avoids relying on individual Vercel preview origins in backend CORS settings.
-  const fallback = loc && loc.protocol === 'https:'
+  const loopback = loc && ['localhost', '127.0.0.1'].includes(loc.hostname) && loc.protocol === 'http:';
+  const fallback = loc && (loc.protocol === 'https:' || loopback)
     ? loc.origin + '/api/crm' : directFallback;
   const settings = window.MATRIX360_CRM_CONFIG;
   const candidate = settings && Object.prototype.hasOwnProperty.call(settings, 'apiBase')
@@ -15,7 +16,7 @@
     const parsed = new URL(candidate);
     const local = parsed.hostname === 'localhost' || parsed.hostname === '127.0.0.1';
     const secure = parsed.protocol === 'https:' || (local && parsed.protocol === 'http:');
-    const proxy = loc && parsed.origin === loc.origin && parsed.pathname === '/api/crm' && loc.protocol === 'https:';
+    const proxy = loc && parsed.origin === loc.origin && parsed.pathname === '/api/crm' && (loc.protocol === 'https:' || loopback);
     const direct = parsed.pathname === '/';
     if (!secure || parsed.username || parsed.password || parsed.search || parsed.hash ||
         parsed.origin === 'null' || !(proxy || direct)) {

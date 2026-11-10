@@ -2,10 +2,12 @@
 const test=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path'),vm=require('node:vm');
 const frontend=path.join(__dirname,'..');
 
-test('legacy public pricing URL redirects to the single landing-page comparison',async()=>{
- const handler=require('../api/creative-integrated');const headers={};const res={statusCode:0,setHeader(k,v){headers[k]=v;},end(){}};
+test('legacy pricing preserves the browser-only FAQ fragment and canonical plans',async()=>{
+ const handler=require('../api/creative-integrated');const headers={};const res={statusCode:0,setHeader(k,v){headers[k]=v;},end(body){this.body=body;}};
  await handler({method:'GET',query:{mode:'page',file:'pricing.html'}},res);
- assert.equal(res.statusCode,302);assert.equal(headers.Location,'/index.html#m360-new-plans');
+ assert.equal(res.statusCode,200);
+ const script=res.body.match(/<script>(.*?)<\/script>/)[1];
+ for(const [hash,expected] of [['#faq','/index.html#faq'],['','/index.html#m360-new-plans']]){let destination;vm.runInNewContext(script,{location:{hash,replace(value){destination=value;}}});assert.equal(destination,expected);}
 });
 
 test('theme switch follows the system, toggles, and restores the saved choice',()=>{
@@ -28,6 +30,18 @@ test('both palettes meet normal-text contrast for body, secondary text and prima
   for(const bg of ['bg','panel','soft'])for(const fg of ['text','muted'])assert.ok(ratio(values[bg],values[fg])>=4.5,fg+' on '+bg);
   assert.ok(ratio('ffffff',values.button)>=4.5);
  }
+});
+
+test('relocated Market Research tools retain theme surfaces and responsive forms',()=>{
+ const css=fs.readFileSync(path.join(frontend,'frontend-source/matrix360-workspace-theme.css'),'utf8');
+ const client=fs.readFileSync(path.join(frontend,'lib/m360-research-client.js'),'utf8');
+ assert.match(client,/classList\.add\('m360-research-planning-tool'\)/);
+ assert.match(client,/movePlanningTool\(\$\('m360-calendar-grid'\)\?\.closest\('\.m360-card'\)\)/);
+ assert.match(css,/#m360-market-research \.m360-research-planning-tool \*\{box-sizing:border-box;min-width:0\}/);
+ assert.match(css,/#m360-market-research \.m360-research-planning-tool #m360-calendar-grid strong\{background:var\(--ws-button\)!important;color:#fff!important\}/);
+ assert.match(css,/#m360-market-research \.m360-research-planning-tool :is\(input:not\(\[type=range\]\),select,textarea\)\{[^}]*width:100%!important;[^}]*background:var\(--ws-panel\)!important;[^}]*color:var\(--ws-text\)!important/);
+ assert.match(css,/#m360-market-research :is\(#m360-calendar-form,#m360-journey-form\)\{[^}]*grid-template-columns:repeat\(2,minmax\(0,1fr\)\);[^}]*gap:12px 16px/);
+ assert.match(css,/@media\(max-width:640px\)[\s\S]*#m360-market-research :is\(#m360-calendar-form,#m360-journey-form\)\{grid-template-columns:minmax\(0,1fr\)\}/);
 });
 
 test('research works independently of storage and retains an evidence-based website audit',async()=>{

@@ -2,26 +2,33 @@
 (() => {
   'use strict';
   const root = document.documentElement;
-  let theme = 'light';
-  try { theme = localStorage.getItem('m360-theme') || (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'); } catch {}
-  const apply = value => { root.dataset.m360Theme = value === 'dark' ? 'dark' : 'light'; };
-  apply(theme);
+  const system = matchMedia('(prefers-color-scheme: dark)');
+  let chosen = null, update = () => {};
+  try { const saved=localStorage.getItem('m360-theme'); if(['light','dark'].includes(saved))chosen=saved; } catch {}
+  const apply = () => { root.dataset.m360Theme = chosen || (system.matches ? 'dark' : 'light'); update(); };
+  system.addEventListener?.('change', apply);
+  if(typeof addEventListener==='function')addEventListener('storage', event => {
+    if(event.key!=='m360-theme')return;
+    chosen=['light','dark'].includes(event.newValue)?event.newValue:null;apply();
+  });
+  apply();
   function boot() {
     const button = document.createElement('button');
     button.id = 'm360-theme-toggle'; button.type = 'button'; button.className = 'btn';
     button.setAttribute('role', 'switch');
-    const update = () => {
+    update = () => {
       const dark = root.dataset.m360Theme === 'dark';
       button.textContent = 'Dark mode';
       button.setAttribute('aria-label', 'Dark mode');
       button.setAttribute('aria-checked', String(dark));
     };
     button.addEventListener('click', () => {
-      apply(root.dataset.m360Theme === 'dark' ? 'light' : 'dark');
+      chosen=root.dataset.m360Theme === 'dark' ? 'light' : 'dark';apply();
       try { localStorage.setItem('m360-theme', root.dataset.m360Theme); } catch {}
       update();
     });
-    (document.querySelector('.side') || document.body).append(button); update();
+    (document.querySelector('.side') || document.querySelector('.formside .topline') || document.body).append(button); update();
+    if(document.body?.classList?.contains('m360-matched-auth'))return;
     // Keep historical CRM rows readable without exposing implementation-specific provider labels.
     const leadList=document.getElementById('lead-list');
     function cleanLeadLabels(){

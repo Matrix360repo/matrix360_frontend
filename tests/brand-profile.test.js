@@ -30,7 +30,7 @@ test('brand profile accepts the same numeric CRM workspace ID sent by the browse
  let call=0;
  global.fetch=async()=>{
   call++;
-  if(call===1)return {ok:true,status:200,json:async()=>[{id:19,name:'Northstar Industrial Complex'}]};
+  if(call===1)return {ok:true,status:200,json:async()=>[{id:19,name:'Lakhotia Industrial Complex'}]};
   return {ok:true,status:200,text:async()=> '[]'};
  };
  delete require.cache[require.resolve('../api/brand')];
@@ -40,7 +40,7 @@ test('brand profile accepts the same numeric CRM workspace ID sent by the browse
   await handler({method:'GET',headers:{authorization:'Bearer abcdefghijklmnopqrstuvwxyz.123456'},query:{workspace_id:'19',action:'profile'}},res);
   assert.equal(res.state.statusCode,200);
   assert.equal(res.state.body.workspace_id,'19');
-  assert.equal(res.state.body.business_name,'Northstar Industrial Complex');
+  assert.equal(res.state.body.business_name,'Lakhotia Industrial Complex');
   assert.equal(res.state.body.version,0);
  }finally{
   global.fetch=oldFetch;

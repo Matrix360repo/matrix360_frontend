@@ -18,19 +18,19 @@ const marketingApi = require('../api/marketing');
 // ============================================================================
 
 test('Affinity Engine: B2B Industrial vs B2C Residential Classification', () => {
-  // Northstar Industrial Park -> B2B
-  const northstarType = affinityEngine.classifyProfile({ businessName: 'Northstar Industrial Park', project: 'northstar' });
-  assert.equal(northstarType, 'b2b_industrial');
+  // Lakhotia Industrial Park -> B2B
+  const lakhotiaType = affinityEngine.classifyProfile({ businessName: 'Lakhotia Industrial Park', project: 'lakhotia' });
+  assert.equal(lakhotiaType, 'b2b_industrial');
 
-  const northstarStrategy = affinityEngine.getAffinityStrategy({ businessName: 'Northstar Industrial Park', project: 'northstar' });
-  assert.equal(northstarStrategy.profile_type, 'b2b_industrial');
-  assert.ok(northstarStrategy.pitch_framing.value_proposition.includes('industrial infrastructure'));
+  const lakhotiaStrategy = affinityEngine.getAffinityStrategy({ businessName: 'Lakhotia Industrial Park', project: 'lakhotia' });
+  assert.equal(lakhotiaStrategy.profile_type, 'b2b_industrial');
+  assert.ok(lakhotiaStrategy.pitch_framing.value_proposition.includes('industrial infrastructure'));
 
-  // Example Heights -> B2C
-  const shreeType = affinityEngine.classifyProfile({ businessName: 'Example Heights Chandannagar', project: 'example_heights' });
+  // Shree Heights -> B2C
+  const shreeType = affinityEngine.classifyProfile({ businessName: 'Shree Heights Chandannagar', project: 'shree_heights' });
   assert.equal(shreeType, 'b2c_affinity');
 
-  const shreeStrategy = affinityEngine.getAffinityStrategy({ businessName: 'Example Heights Chandannagar', project: 'example_heights' });
+  const shreeStrategy = affinityEngine.getAffinityStrategy({ businessName: 'Shree Heights Chandannagar', project: 'shree_heights' });
   assert.equal(shreeStrategy.profile_type, 'b2c_affinity');
   assert.ok(shreeStrategy.pitch_framing.value_proposition.includes('riverine living') || shreeStrategy.pitch_framing.emotional_hook.includes('home'));
 
@@ -40,9 +40,9 @@ test('Affinity Engine: B2B Industrial vs B2C Residential Classification', () => 
   assert.ok(segmentIds.includes('hooghly_upgraders'), 'Must include Hooghly upgraders');
   assert.ok(segmentIds.includes('metro_diaspora'), 'Must include Kolkata diaspora');
 
-  // Example Gardens -> B2C
-  const examplegardensType = affinityEngine.classifyProfile({ businessName: 'Example Gardens', project: 'example_gardens' });
-  assert.equal(examplegardensType, 'b2c_affinity');
+  // Vrindavan Greens -> B2C
+  const vrindavanType = affinityEngine.classifyProfile({ businessName: 'Vrindavan Greens', project: 'vrindavan_greens' });
+  assert.equal(vrindavanType, 'b2c_affinity');
 
   // Verified profile fields may classify; free-form prompts alone may not.
   const autoB2B = affinityEngine.classifyProfile({ industry: 'Heavy machinery and warehouse park' });
@@ -63,12 +63,12 @@ test('Handover Envelope: Schema Validation and 6-Step Lifecycle Progression', as
   const envelope = orchestrator.createHandoverEnvelope({
     origin_module: 'control_center',
     target_engine: 'marketing',
-    workspace_id: 'ws-test-northstar',
+    workspace_id: 'ws-test-lakhotia',
     user_id: 'user-001',
     task_title: 'Q4 Industrial Outreach',
     payload: {
-      business_name: 'Northstar Logistics Hub',
-      project: 'northstar',
+      business_name: 'Lakhotia Logistics Hub',
+      project: 'lakhotia',
       profile_type: 'b2b_industrial',
       goal: 'Generate 20 qualified warehousing inquiries',
       channels: ['WhatsApp', 'LinkedIn', 'Email']
@@ -80,17 +80,17 @@ test('Handover Envelope: Schema Validation and 6-Step Lifecycle Progression', as
   assert.ok(envelope.correlation_id);
   assert.equal(envelope.origin_module, 'control_center');
   assert.equal(envelope.target_engine, 'marketing');
-  assert.equal(envelope.workspace_id, 'ws-test-northstar');
+  assert.equal(envelope.workspace_id, 'ws-test-lakhotia');
   assert.equal(envelope.status, 'accepted');
 
   // Dispatch task in orchestrator with minimal async delay for testing
   const task = await orchestrator.dispatchMarketingTask(envelope, { delay: 10 });
-  assert.equal(task.workspace_id, 'ws-test-northstar');
+  assert.equal(task.workspace_id, 'ws-test-lakhotia');
 
   // Wait for the pipeline to finish step progression
   await new Promise(r => setTimeout(r, 80));
 
-  const finalized = orchestrator.getMarketingTask('ws-test-northstar', envelope.correlation_id);
+  const finalized = orchestrator.getMarketingTask('ws-test-lakhotia', envelope.correlation_id);
   assert.ok(finalized);
   assert.equal(finalized.status, 'draft_ready');
 
@@ -115,7 +115,7 @@ test('Handover Envelope: Schema Validation and 6-Step Lifecycle Progression', as
 
 test('Channel Versioner: 10-Channel Tree, Targeted Revisions & Visual Diff', () => {
   const tree = channelVersioner.initChannelVersionTree({
-    business: 'Example Heights'
+    business: 'Shree Heights'
   });
 
   // Verify all 10 channels initialized at v1
@@ -170,6 +170,17 @@ test('Channel Versioner: 10-Channel Tree, Targeted Revisions & Visual Diff', () 
   assert.ok(diff.some(d => d.type === 'removed' || d.type === 'added'));
 });
 
+test('Channel copy keeps editable paragraphs and the supplied Email action',()=>{
+  const {createDraft}=require('../lib/channel-copy');
+  const plan={subject:'Industrial plots',headlines:['Explore plots for your facility'],caption:'Review the site details before arranging a visit.',cta:'Request a site visit'};
+  const email=createDraft({channel:'Email',plan,business:'Example Park'});
+  assert.match(email.body,/Hello,\n\nReview the site/);
+  assert.match(email.body,/\n\nRequest a site visit\n\n/);
+  assert.equal(email.preview_text,plan.caption);
+  const social=createDraft({channel:'LinkedIn',plan,business:'Example Park'});
+  assert.match(social.body,/\nRequest a site visit/);
+});
+
 test('Channel Versioner: final copy replacement recomputes immutable approval hash', () => {
   const tree = channelVersioner.initChannelVersionTree({ business: 'Matrix 360' });
   const version = tree.WhatsApp.versions[0];
@@ -181,7 +192,9 @@ test('Channel Versioner: final copy replacement recomputes immutable approval ha
   assert.equal(version.characters, 25);
   assert.equal(version.ai_generated, true);
   assert.notEqual(version.version_hash, oldHash);
-  assert.equal(version.version_hash, createHash('sha256').update(version.body).digest('hex'));
+  const bodyHash=version.version_hash;
+  channelVersioner.finalizeDraftVersion(version,version.body,{subject:'Changed subject'});
+  assert.notEqual(version.version_hash,bodyHash);
 });
 
 // ============================================================================
@@ -207,7 +220,7 @@ test('Channel Readiness: 3-Gate Verification and CTWA Bridge Generation', () => 
     draft: { status: 'draft_for_review', version: 1 },
     audience,
     connections,
-    business: 'Example Heights'
+    business: 'Shree Heights'
   });
 
   assert.equal(waCheck.gates.gate1_draft.status, 'draft_for_review');
@@ -226,7 +239,7 @@ test('Channel Readiness: 3-Gate Verification and CTWA Bridge Generation', () => 
     draft: { status: 'approved', version: 1 },
     audience,
     connections,
-    business: 'Example Heights'
+    business: 'Shree Heights'
   });
   assert.equal(liCheck.gates.gate1_draft.passed, true);
   assert.equal(liCheck.gates.gate3_provider.status, 'disconnected_connection_required');
@@ -236,8 +249,8 @@ test('Channel Readiness: 3-Gate Verification and CTWA Bridge Generation', () => 
   // Email-to-CTWA Opt-In Bridge Generation
   const ctwaBridge = channelReadiness.createEmailToCTWABridgeDraft({
     audience,
-    businessName: 'Example Heights',
-    projectName: 'Example Heights Towers',
+    businessName: 'Shree Heights',
+    projectName: 'Shree Heights Towers',
     whatsappNumber: '919830099999'
   });
 
@@ -291,6 +304,8 @@ test('Budget Estimator: Diminishing Returns Curve, A/B Math, & Mandatory Disclai
   assert.ok(ab.sample_size_per_variant > 1000, 'Statistically valid sample size should exceed 1000 for 4% baseline');
   assert.equal(ab.total_required_sample_size, ab.sample_size_per_variant * 2);
   assert.ok(ab.methodology.includes('Two-proportion'));
+  const infeasible = budgetEstimator.calculateABSampleSize({ baselineConversion: 0.04, expectedLiftPercent: 25, availableSample: 100 });
+  assert.equal(infeasible.feasibility_status, 'not_feasible_with_current_reach');
 });
 
 // ============================================================================
@@ -299,9 +314,9 @@ test('Budget Estimator: Diminishing Returns Curve, A/B Math, & Mandatory Disclai
 
 const originalFetch = global.fetch;
 const memberships = [
-  { id: 'ws-e2e-test', name: 'Example Heights', role: 'client_admin', profile_type: 'b2c_affinity', project_slug: 'example_heights' },
-  { id: 'ws-exec-test', name: 'Example Heights', role: 'client_admin', profile_type: 'b2c_affinity', project_slug: 'example_heights' },
-  { id: 'ws-viewer-test', name: 'Viewer Workspace', role: 'viewer', profile_type: 'b2b_industrial', project_slug: 'northstar' }
+  { id: 'ws-e2e-test', name: 'Shree Heights', role: 'client_admin', profile_type: 'b2c_affinity', project_slug: 'shree_heights' },
+  { id: 'ws-exec-test', name: 'Shree Heights', role: 'client_admin', profile_type: 'b2c_affinity', project_slug: 'shree_heights' },
+  { id: 'ws-viewer-test', name: 'Viewer Workspace', role: 'viewer', profile_type: 'b2b_industrial', project_slug: 'lakhotia' }
 ];
 function installCrmFetch(leads = []) {
   global.fetch = async url => {
@@ -340,15 +355,18 @@ function mockHttp(method, path, body = {}, auth = 'Bearer test-session-token-lon
   return { req, res, get: () => ({ status: res.statusCode, data: resData }) };
 }
 
-test('Marketing API: Endpoints Dispatch, Tasks Query, Revise, Approve, and Handoff', async () => {
+test('Marketing API: Endpoints Dispatch, Tasks Query, Revise, Approve, and Handoff', async t => {
+  const previousSendFlag=process.env.MARKETING_LIVE_SEND_ENABLED;
+  process.env.MARKETING_LIVE_SEND_ENABLED='true';
+  t.after(()=>{if(previousSendFlag===undefined)delete process.env.MARKETING_LIVE_SEND_ENABLED;else process.env.MARKETING_LIVE_SEND_ENABLED=previousSendFlag;});
   orchestrator.resetTaskStoreForTests();
   installCrmFetch([]);
 
   // Dispatch a new task (returns 202 Accepted)
   const dispatchMock = mockHttp('POST', '/api/marketing/dispatch', {
     workspace_id: 'ws-e2e-test',
-    business_name: 'Example Heights',
-    project: 'example_heights',
+    business_name: 'Shree Heights',
+    project: 'shree_heights',
     goal: 'Launch residential tower booking'
   });
   await marketingApi(dispatchMock.req, dispatchMock.res);
@@ -382,6 +400,26 @@ test('Marketing API: Endpoints Dispatch, Tasks Query, Revise, Approve, and Hando
   assert.equal(reviseRes.data.channel_draft_versions['WhatsApp'].current_version, 2);
   assert.equal(reviseRes.data.channel_draft_versions['Instagram'].current_version, 1); // Unchanged!
 
+  const oldEmail=reviseRes.data.channel_draft_versions.Email.versions.at(-1);
+  const editBody={workspace_id:'ws-e2e-test',correlation_id:corrId,channel:'Email',version_hash:oldEmail.version_hash,
+    manual_edit:{subject:'Book a visit',preview_text:'Pick a time that works for you',body:'Hello,\n\nRequest a site visit.'}};
+  const manual=mockHttp('POST','/api/marketing/revise',editBody);
+  await marketingApi(manual.req,manual.res);
+  const edited=manual.get();
+  assert.equal(edited.status,200);
+  assert.deepEqual(edited.data.targeted_channels,['Email']);
+  assert.equal(edited.data.channel_draft_versions.WhatsApp.current_version,2);
+  const updatedEmail=edited.data.channel_draft_versions.Email.versions.at(-1);
+  assert.equal(updatedEmail.status,'draft_for_review');
+  assert.equal(updatedEmail.body,editBody.manual_edit.body);
+  assert.equal(updatedEmail.preview_text,editBody.manual_edit.preview_text);
+  const stale=mockHttp('POST','/api/marketing/execute',{workspace_id:'ws-e2e-test',correlation_id:corrId,channel:'Email',mode:'live',version_hash:oldEmail.version_hash});
+  await marketingApi(stale.req,stale.res);
+  assert.equal(stale.get().data.code,'DRAFT_VERSION_CHANGED');
+  const mixed=mockHttp('POST','/api/marketing/execute',{workspace_id:'ws-e2e-test',correlation_id:corrId,channel:'Email',mode:'live',test_recipient:'test@example.com'});
+  await marketingApi(mixed.req,mixed.res);
+  assert.equal(mixed.get().status,400);
+
   // Approve channel
   const approveMock = mockHttp('POST', '/api/marketing/approve', {
     workspace_id: 'ws-e2e-test',
@@ -393,6 +431,20 @@ test('Marketing API: Endpoints Dispatch, Tasks Query, Revise, Approve, and Hando
   const approveRes = approveMock.get();
   assert.equal(approveRes.status, 200);
   assert.equal(approveRes.data.readiness.gates.gate1_draft.status, 'approved');
+
+  const calendarCreate = mockHttp('POST', '/api/marketing/calendar', {
+    workspace_id: 'ws-e2e-test', correlation_id: corrId, title: 'Client review', channel: 'Email',
+    scheduled_for: '2026-11-20T03:30:00.000Z', timezone: 'Asia/Kolkata', status: 'pending_approval'
+  });
+  await marketingApi(calendarCreate.req, calendarCreate.res);
+  assert.equal(calendarCreate.get().status, 200);
+  const calendarId = calendarCreate.get().data.event.event_id;
+  const calendarUpdate = mockHttp('PATCH', '/api/marketing/calendar', { workspace_id: 'ws-e2e-test', correlation_id: corrId, event_id: calendarId, title: 'Approved client review', status: 'approved' });
+  await marketingApi(calendarUpdate.req, calendarUpdate.res);
+  assert.equal(calendarUpdate.get().data.event.status, 'approved');
+  const calendarDelete = mockHttp('DELETE', '/api/marketing/calendar', { workspace_id: 'ws-e2e-test', correlation_id: corrId, event_id: calendarId });
+  await marketingApi(calendarDelete.req, calendarDelete.res);
+  assert.equal(calendarDelete.get().data.operation, 'remove');
 
   // Inbound handoff from Leads ("Push to Marketing")
   const handoffLeadsMock = mockHttp('POST', '/api/marketing/handoff', {
@@ -423,6 +475,31 @@ test('Marketing API: Endpoints Dispatch, Tasks Query, Revise, Approve, and Hando
   assert.equal(unauthorizedMock.get().status, 403);
 });
 
+test('showcase Marketing prepares a standalone campaign and refreshes its browser-local pipeline without external CRM calls', async () => {
+  const oldShowcase = process.env.M360_SHOWCASE_ENABLED;
+  try {
+    process.env.M360_SHOWCASE_ENABLED = 'true';
+    orchestrator.resetTaskStoreForTests();
+    const dispatch = mockHttp('POST', '/api/marketing/dispatch', { workspace_id: 'showcase', prompt: 'Prepare a campaign to generate qualified industrial facility enquiries.', showcase_profile: { business_name: 'Northstar Industries — Demo', industry: 'Manufacturing', products_services: ['Industrial facilities'] }, showcase_audience: [{ id: 'demo-1', name: 'Fictional prospect', source: 'Showcase pipeline', stage: 'enquiry' }] }, 'Bearer matrix360-isolated-showcase');
+    await marketingApi(dispatch.req, dispatch.res);
+    assert.equal(dispatch.get().status, 202);
+    await new Promise(resolve => setTimeout(resolve, 40));
+    const corrId = dispatch.get().data.correlation_id;
+    const task = orchestrator.getMarketingTask('showcase', corrId);
+    assert.equal(task.status, 'draft_ready');
+    assert.equal(task.audience_snapshot.total_count, 1);
+    assert.equal(task.audience_snapshot.outbound_blocked, true);
+    const coordinate = mockHttp('POST', '/api/marketing/coordination', { workspace_id: 'showcase', correlation_id: corrId, operation: 'full', showcase_audience: [{ id: 'demo-1', name: 'Fictional prospect' }, { id: 'demo-2', name: 'Imported fictional prospect' }] }, 'Bearer matrix360-isolated-showcase');
+    await marketingApi(coordinate.req, coordinate.res);
+    assert.equal(coordinate.get().status, 200);
+    assert.equal(coordinate.get().data.audience.count, 2);
+    assert.equal(coordinate.get().data.content.asset_count, 0);
+    assert.equal(coordinate.get().data.overview.audience_count, 2);
+  } finally {
+    if (oldShowcase === undefined) delete process.env.M360_SHOWCASE_ENABLED; else process.env.M360_SHOWCASE_ENABLED = oldShowcase;
+  }
+});
+
 // ============================================================================
 // 7. EXECUTION DISPATCH & 3-GATE ENFORCEMENT
 // ============================================================================
@@ -433,7 +510,7 @@ test('Marketing API: Execute Channel Dispatch and 3-Gate Enforcement', async () 
 
   const dispatchMock = mockHttp('POST', '/api/marketing/dispatch', {
     workspace_id: 'ws-exec-test',
-    prompt: 'Launch email and whatsapp outreach for Example Heights',
+    prompt: 'Launch email and whatsapp outreach for Shree Heights',
     connections: { email: true, whatsapp: true },
     leads: [{ id: 'forged', email: 'forged@example.com' }]
   });
@@ -542,7 +619,7 @@ test('Marketing API denies anonymous, cross-tenant and viewer mutations; forged 
 
   const forged = mockHttp('POST', '/api/marketing/dispatch', {
     workspace_id: 'ws-e2e-test', prompt: 'Prepare a residential campaign review draft.',
-    origin_module: 'leads', business_name: 'Forged Business', project: 'northstar',
+    origin_module: 'leads', business_name: 'Forged Business', project: 'lakhotia',
     leads: [{ id: 'fake-contact' }], connections: { email: true },
     artifact_refs: [{ kind: 'image', id: 'fake-asset' }], test_delay: 0
   });
@@ -551,8 +628,8 @@ test('Marketing API denies anonymous, cross-tenant and viewer mutations; forged 
   await new Promise(resolve => setTimeout(resolve, 40));
   const task = orchestrator.getMarketingTask('ws-e2e-test', forged.get().data.correlation_id);
   assert.equal(task.origin_module, 'marketing');
-  assert.equal(task.business_name, 'Example Heights');
-  assert.equal(task.project, 'example_heights');
+  assert.equal(task.business_name, 'Shree Heights');
+  assert.equal(task.project, 'shree_heights');
   assert.equal(task.audience_snapshot.total_count, 0);
   assert.deepEqual(task.artifact_refs.filter(ref => ref.kind !== 'audience_snapshot'), []);
   assert.equal(task.connections.email, false);
@@ -561,15 +638,18 @@ test('Marketing API denies anonymous, cross-tenant and viewer mutations; forged 
 test('Marketing browser client has no production-reachable demo success fallback', () => {
   const source = fs.readFileSync(path.join(__dirname, '../lib/m360-marketing-client.browser.js'), 'utf8');
   assert.doesNotMatch(source, /getDefaultTask|prov_rec_|sample-kv|cmp_.*_default/);
-  assert.match(source, /Verified Content Studio task IDs are not connected|Durable shared Marketing storage is not provisioned/);
+  assert.match(source, /No saved visual asset found; generated text strategy remains ready/);
   assert.doesNotMatch(source, /eligible_count: 24|wa\.me\/919830099999|SPF: Pass|DKIM: Pass/);
+  assert.match(source, /channel: activeChannel, revision_prompt: revText/);
+  assert.match(source, /data\.status === 'test_preview_ready'/);
+  assert.doesNotMatch(source, /id="m360-email-approval"/);
 });
 
 
 test('Marketing engine test-preview returns approved content without a recipient or send action while live execute fails closed', async () => {
   const dispatchReq = mockHttp('POST', '/api/marketing/dispatch', {
     workspace_id: 'ws-e2e-test',
-    prompt: 'Launch a campaign for Example Heights.'
+    prompt: 'Launch a campaign for Shree Heights.'
   });
   await marketingApi(dispatchReq.req, dispatchReq.res);
   assert.equal(dispatchReq.get().status, 202);
@@ -604,12 +684,11 @@ test('Marketing engine test-preview returns approved content without a recipient
   });
 
   task.channel_draft_versions.WhatsApp.versions.at(-1).status = 'draft';
-  await assert.rejects(
-    orchestrator.executeMarketingChannel('ws-e2e-test', corrId, 'WhatsApp', { mode: 'test_preview' }),
-    error => error.code === 'STALE_DRAFT_VERSION'
-  );
-  assert.equal(task.audit_history.at(-1).outcome, 'blocked');
-  assert.equal(task.audit_history.at(-1).failure_code, 'STALE_DRAFT_VERSION');
+  const draftPreview = await orchestrator.executeMarketingChannel('ws-e2e-test', corrId, 'WhatsApp', { mode: 'test_preview' });
+  assert.equal(draftPreview.status, 'test_preview_ready');
+  assert.match(draftPreview.message, /Draft preview prepared/);
+  assert.equal(task.audit_history.at(-1).outcome, 'preview_ready');
+  assert.equal(task.audit_history.at(-1).failure_code, null);
   assert.match(task.audit_history.at(-1).request_id, /^[0-9a-f-]{36}$/);
 
   await assert.rejects(

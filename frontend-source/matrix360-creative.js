@@ -18,7 +18,7 @@
  "<label for='creative-platform'>Content type</label><select id='creative-platform' disabled><optgroup label='Messages'><option>WhatsApp</option><option>LinkedIn</option><option>Email</option></optgroup><optgroup label='Posts'><option>Instagram</option><option>Facebook</option></optgroup></select>"+
  "<label class='m360-creative-confirm'><input type='checkbox' id='creative-confirm' disabled> I confirm this brief has no private customer data, contact details, trade secrets or unapproved claims.</label>"+
  "<button id='creative-submit' type='submit' class='btn primary' disabled>Generate editable content draft</button></form>"+
- "<section id='creative-result' hidden aria-label='Generated copy and creative plan for review'><h3>Generated content — edit before use</h3>"+
+ "<section id='creative-result' hidden aria-label='Generated copy and creative plan for review'><h3 id='creative-result-title'>Content draft for review</h3>"+
  "<p id='creative-source'></p><p id='creative-subject'></p>"+
  "<h4>Hook lines for the post or message</h4><ol id='creative-headlines'></ol>"+
  "<div id='creative-scenes' hidden></div>"+
@@ -37,11 +37,12 @@
  ".m360-creative-confirm input{width:19px;height:19px;min-height:19px;flex:none;margin-top:2px}"+
  ".m360-creative-panel #creative-state{border-left:4px solid #0b786b;background:#eaf4ee;padding:12px 15px;border-radius:8px}"+
  ".m360-creative-panel #creative-result{padding:18px;margin-top:18px;border-radius:14px;border:1px solid #d9e7df;background:#f8fbf8;overflow-wrap:anywhere}"+
- ".m360-creative-panel #creative-draft-body{min-height:210px;font:15px/1.6 inherit;white-space:pre-wrap}"+
+ ".m360-creative-panel #creative-draft-body{min-height:210px;white-space:pre-wrap}"+
+ ".m360-creative-panel #creative-result :is(input,textarea){width:100%;box-sizing:border-box}"+
  ".m360-copy-actions{display:flex;flex-wrap:wrap;gap:12px;align-items:center;margin:12px 0}#creative-draft-source{font-size:12px;color:#627875}"+
  ".m360-creative-panel .m360-creative-disclaimer{font-size:12px;color:#667b78;margin-top:15px;line-height:1.65}";
  document.head.append(style);
- let current='',ready=false,revision=0,busy=false;
+ let current='',ready=false,revision=0,busy=false,handoff=null;
  function status(message,problem=false,mode='checking'){
   const el=$('creative-state');el.textContent=message;el.style.borderLeftColor=problem?'#b15c35':'#0b786b';
   const chip=$('creative-feature-status'),description=$('creative-feature-description');
@@ -60,7 +61,7 @@
      mode==='review'?'Editable content draft prepared; media creation is an independent workflow.':message;
  }
  function reset(){
-  revision++;current='';ready=false;busy=false;$('creative-result').hidden=true;
+  revision++;current='';ready=false;busy=false;handoff=null;$('creative-result').hidden=true;
   $('creative-form').reset();
   for(const id of ['creative-prompt','creative-platform','creative-confirm','creative-submit'])$(id).disabled=true;
   $('creative-draft-body').value='';$('creative-draft-subject').value='';$('creative-draft-subject').hidden=true;$('creative-draft-subject-label').hidden=true;
@@ -85,7 +86,10 @@
  document.addEventListener('m360:crm-loaded',async event=>{
   const ws=event?.detail?.workspace,token=credential();
   if(typeof ws!=='string'||!token||ws!==$('workspace')?.value)return reset();
-  reset();current=ws;const seq=revision;status('Checking Creative Studio configuration…',false,'checking');
+  if(current===ws&&(busy||ready))return;
+  const retained=$('creative-prompt').value,channel=$('creative-platform').value;
+  reset();current=ws;$('creative-prompt').value=retained;$('creative-platform').value=channel;
+  const seq=revision;status('Checking Creative Studio configuration…',false,'checking');
   try{
    const result=await call('GET',ws,null,token);
    if(seq!==revision||ws!==$('workspace')?.value||!credential())return;
@@ -98,18 +102,34 @@
    if(seq===revision){ready=false;status('Social Manager staging unavailable. No content generated.',true,'error');}
   }
  });
+ const previewLabel=document.createElement('label');
+ previewLabel.hidden=true;previewLabel.textContent='Email preview text';
+ const previewInput=document.createElement('input');
+ previewInput.id='creative-draft-preview';previewInput.maxLength=120;
+ previewLabel.append(previewInput);$('creative-draft-body').before(previewLabel);
  $('creative-copy-draft').addEventListener('click',async()=>{
   const body=$('creative-draft-body').value,subject=$('creative-draft-subject').hidden?'':$('creative-draft-subject').value;
+  const preview=$('creative-draft-preview');
   if($('creative-result').hidden||!credential()||current!==$('workspace')?.value)return status('Reopen an authorized business draft before copying.',true,'blocked');
   try{
     if(!navigator.clipboard?.writeText)throw Error('Clipboard permission unavailable.');
-    await navigator.clipboard.writeText((subject?'Subject: '+subject+'\n\n':'')+body);
+    await navigator.clipboard.writeText((subject?'Subject: '+subject+'\n'+(preview?.value?'Preview text: '+preview.value+'\n':'')+'\n':'')+body);
     status('Draft copied. Review claims, consent and recipient before use.',false,'review');
   }catch{status('Clipboard is unavailable. Select the text in the editable draft to copy manually.',true,'review');}
  });
  $('creative-draft-body').addEventListener('input',()=>{
   const v=$('creative-draft-body').value;
-  $('creative-draft-count').textContent=[...v].length+' characters (edited)';
+  const count=$('creative-draft-count'),limit=Number(count.dataset.limit);
+  count.textContent=[...v].length+(limit?' / '+limit:'')+' characters'+(limit&&[...v].length>limit?' · shorten before use':'');
+ });
+ document.addEventListener('m360:copy-brief',event=>{
+  if(event.detail?.workspace!==$('workspace')?.value||!credential()||busy)return;
+  handoff=event.detail.workflow_id?{...event.detail}:null;
+  $('creative-prompt').value=String(event.detail.prompt||'').slice(0,900);
+  const channel=$('creative-platform');
+  if(Array.from(channel.options).some(option=>option.value===event.detail.channel))channel.value=event.detail.channel;
+  $('creative-confirm').checked=false;
+  $('creative-prompt').focus({preventScroll:true});
  });
  $('creative-form').addEventListener('submit',async e=>{
   e.preventDefault();const ws=$('workspace')?.value,token=credential(),prompt=$('creative-prompt').value.trim();
@@ -124,13 +144,17 @@
    const d=response.data;
    if(d.status!=='review_only'||d.workspace_id!==ws)throw Error('Unexpected creative result');
    $('creative-subject').textContent=d.subject?'Subject: '+d.subject:'';
-   $('creative-source').textContent='Source: '+(d.generation==='configured_model'?'Configured semantic model':'Limited prompt-derived fallback; not verified generative AI');
+   const generated=d.generation==='configured_model';
+   $('creative-result-title').textContent=generated?'Generated content for review':'Starter draft for review';
+   $('creative-source').textContent=generated?'Source: AI writing model':'AI writing was unavailable for this request. Edit this starter draft or try generating again.';
    $('creative-caption').textContent='Suggested caption: '+(d.caption||'Not supplied');
    const copy=d.channel_draft;
    if(!copy||copy.status!=='draft_for_review'||copy.channel!==$('creative-platform').value||typeof copy.body!=='string'||!copy.body.trim())throw Error('Channel copy was not returned by Social Manager integration.');
    $('creative-draft-subject').hidden=!copy.subject;$('creative-draft-subject-label').hidden=!copy.subject;
    $('creative-draft-subject').value=copy.subject||'';
    $('creative-draft-body').value=copy.body;
+   const count=$('creative-draft-count');count.dataset.limit=String(copy.limit);
+   const preview=$('creative-draft-preview');preview.value=copy.preview_text||'';preview.parentElement.hidden=copy.channel!=='Email';
    $('creative-draft-count').textContent=[...copy.body].length+' / '+copy.limit+' characters';
    $('creative-draft-source').textContent=copy.disclosure||'Draft for human review only.';
    $('creative-note').textContent=d.note||'Draft only; no messages sent.';
@@ -147,8 +171,18 @@
      headline:Array.isArray(d.headlines)?String(d.headlines[0]||d.subject||''):String(d.subject||''),
      cta:d.cta||'Explore more'
    }}));
-   status('Editable '+$('creative-platform').value+' draft created for review. A matching PNG post is generated for supported visual channels. Nothing sent or published.',false,'review');
+   if(handoff)document.dispatchEvent(new CustomEvent('m360:content-draft-ready',{detail:{workspace:ws,workflow_id:handoff.workflow_id,channel:copy.channel,subject:copy.subject||'',preview_text:copy.preview_text||'',body:copy.body}}));
+   status(generated?'Editable '+copy.channel+' draft created for review.':'Editable '+copy.channel+' starter draft ready for your details.',false,'review');
   }catch(err){if(seq===revision)status(err.message||'No creative plan generated.',true,'error');}
   finally{if(seq===revision){busy=false;$('creative-submit').disabled=!ready;}}
+ });
+ const returnButton=document.createElement('button');returnButton.type='button';returnButton.textContent='Return edited draft to campaign';returnButton.hidden=true;
+ $('creative-copy-draft').after(returnButton);
+ document.addEventListener('m360:copy-brief',event=>{returnButton.hidden=!event.detail?.workflow_id;});
+ for(const event of ['m360:workspace-changing','m360:session-ended'])document.addEventListener(event,()=>{returnButton.hidden=true;});
+ returnButton.addEventListener('click',()=>{
+   if(!handoff||busy||$('creative-result').hidden||handoff.workspace!==current||!credential())return;
+   document.dispatchEvent(new CustomEvent('m360:content-draft-ready',{detail:{workspace:current,workflow_id:handoff.workflow_id,channel:$('creative-platform').value,subject:$('creative-draft-subject').value,preview_text:$('creative-draft-preview').value,body:$('creative-draft-body').value}}));
+   window.Matrix360Router?.navigateToPage(handoff.return_to, handoff.return_to==='overview'?'#m360-overview-control':'#marketing-centre');
  });
 })();

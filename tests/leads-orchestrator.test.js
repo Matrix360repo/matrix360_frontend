@@ -45,12 +45,12 @@ function jsonResp(status, obj, headers = {}) {
   };
 }
 
-function createTestHandler(fetchImpl){
+function createTestHandler(fetchImpl,qualify=async leads=>leads){
  return orchestrator.createUnifiedLeadsHandler(async(url,options)=>{
   if(url.endsWith('/me/workspaces'))return jsonResp(200,['test-workspace','client_alpha','client_beta'].map(id=>({id,name:'Synthetic '+id,role:'client_admin',website_client_id:'approved_test_client'})));
   if(url.endsWith('/api/campaign/profile/approved_test_client'))return jsonResp(200,{id:'approved_test_client'});
   return fetchImpl(url,options);
- });
+ },qualify);
 }
 function textResp(status, rawText) {
   return {
@@ -59,6 +59,22 @@ function textResp(status, rawText) {
     text: async () => String(rawText)
   };
 }
+
+test('production relevance gate removes mislabelled candidates before exposing results',async()=>{
+ orchestrator.resetOrchestratorStateForTests();
+ const {qualifyCandidates}=require('../lib/m360-lead-relevance');
+ const handler=orchestrator.createUnifiedLeadsHandler(async url=>{
+  if(url.endsWith('/me/workspaces'))return jsonResp(200,[{id:'test-workspace',role:'client_admin'}]);
+  if(url.includes('m360_brand_profiles'))return jsonResp(200,[]);
+  if(url.endsWith('/api/scraper/run'))return jsonResp(200,{job_id:'relevance-job'});
+  if(url.endsWith('/api/scraper/status'))return jsonResp(200,{running:false});
+  if(url.includes('/api/scraper/leads'))return jsonResp(200,{leads:[{company_name:'Relevant Steel',website:'https://steel.example',location:'West Bengal'},{company_name:'Unrelated',website:'https://health.example',location:'West Bengal'}]});
+  return jsonResp(503,{});
+ },(leads,record)=>qualifyCandidates(leads,record,async url=>({url,mime:'text/html',bytes:Buffer.from(url.includes('steel.')?'Steel manufacturer in Howrah':'Healthcare in Singapore')})));
+ const started=mockRes();await handler(mockReq({method:'POST',body:{prompt:'Find 3 steel manufacturers in West Bengal'}}),started);
+ const result=mockRes();await handler(mockReq({query:{campaign_id:started.json().campaign_id}}),result);
+ assert.equal(result.statusCode,200);assert.deepEqual(result.json().leads.map(x=>x.company_name),['Relevant Steel']);assert.equal(result.json().target_reached,false);
+});
 
 test('1. Both engines start and complete', async () => {
   orchestrator.resetOrchestratorStateForTests();
@@ -91,7 +107,7 @@ test('1. Both engines start and complete', async () => {
 
   const startRes = mockRes();
   await handler(
-    mockReq({ method: 'POST', body: { prompt: 'Find steel plants in Kolkata' } }),
+    mockReq({ method: 'POST', body: { prompt: 'Find 2 steel plants in Kolkata' } }),
     startRes
   );
   assert.equal(startRes.statusCode, 202);
@@ -117,6 +133,31 @@ test('1. Both engines start and complete', async () => {
   assert.equal(polled.ui_state, 'Completed successfully');
   assert.equal(polled.running, false);
   assert.equal(polled.counts.total, 2);
+});
+
+test('encrypted discovery state survives a cold instance, rejects tampering and other tenants, and retries a transient read',async()=>{
+ const previous=process.env.M360_AI_TRIAL_SUPABASE_SERVICE_KEY;
+ process.env.M360_AI_TRIAL_SUPABASE_SERVICE_KEY='synthetic-checkpoint-key-at-least-30-characters';
+ orchestrator.resetOrchestratorStateForTests();let polls=0,starts=0;
+ const handler=createTestHandler(async url=>{
+  if(url.endsWith('/api/v1/auth/bootstrap'))return jsonResp(200,{token:'synthetic-bootstrap-session'});
+  if(url.endsWith('/api/scraper/run')){starts++;return jsonResp(200,{job_id:'maps-cold-job'});}
+  if(url.endsWith('/api/campaign/start'))return jsonResp(200,{job_id:'website-cold-job'});
+  if(url.endsWith('/api/scraper/status'))return ++polls===1?jsonResp(503,{}):jsonResp(200,{running:false});
+  if(url.includes('/api/scraper/leads'))return jsonResp(200,{leads:[{company_name:'Synthetic manufacturer',phone:'0012345678'}]});
+  if(url.includes('/api/campaign/status/'))return jsonResp(200,{status:'completed',leads:[]});
+  throw Error('Unexpected request');
+ });
+ try{
+  const started=mockRes();await handler(mockReq({method:'POST',body:{prompt:'Find 3 manufacturers in Howrah'}}),started);
+  const data=started.json();assert.ok(data.checkpoint);assert.doesNotMatch(data.checkpoint,/maps-cold-job|website-cold-job|Howrah/);
+  orchestrator.resetOrchestratorStateForTests();
+  for(const [workspace,checkpoint] of [['client_beta',data.checkpoint],['test-workspace','altered'+data.checkpoint]]){
+   const denied=mockRes();await handler(mockReq({method:'POST',query:{action:'status'},headers:{'x-m360-client-scope':workspace},body:{campaign_id:data.campaign_id,checkpoint}}),denied);assert.equal(denied.statusCode,404);
+  }
+  const result=mockRes();await handler(mockReq({method:'POST',query:{action:'status'},body:{campaign_id:data.campaign_id,checkpoint:data.checkpoint}}),result);
+  assert.equal(result.statusCode,200);assert.equal(result.json().leads.length,1);assert.equal(polls,2);assert.equal(starts,1);
+ }finally{if(previous===undefined)delete process.env.M360_AI_TRIAL_SUPABASE_SERVICE_KEY;else process.env.M360_AI_TRIAL_SUPABASE_SERVICE_KEY=previous;orchestrator.resetOrchestratorStateForTests();}
 });
 
 test('2. Maps completes while Website fails to start', async () => {
@@ -172,6 +213,7 @@ test('2. Maps completes while Website fails to start', async () => {
 
 test('3. Website completes while Maps fails to start', async () => {
   orchestrator.resetOrchestratorStateForTests();
+  let starts=0;
   const handler = createTestHandler(async (url) => {
     if (url.endsWith('/api/scraper/run')) {
       return jsonResp(503, { message: 'Maps service unavailable' });
@@ -180,7 +222,7 @@ test('3. Website completes while Maps fails to start', async () => {
       return jsonResp(200, { token: 'boot_tok' });
     }
     if (url.endsWith('/api/campaign/start')) {
-      return jsonResp(200, { job_id: 'web_only_99' });
+      return ++starts===1?jsonResp(200,{job_id:'web_only_99'}):jsonResp(503,{message:'No additional sources available'});
     }
     if (url.endsWith('/api/campaign/status/web_only_99')) {
       return jsonResp(200, {
@@ -245,6 +287,7 @@ test('4. Both engines fail to start', async () => {
 
 test('5. Maps times out while Website completes', async () => {
   orchestrator.resetOrchestratorStateForTests();
+  let starts=0;
   const handler = createTestHandler(async (url) => {
     if (url.endsWith('/api/scraper/run')) {
       const err = new Error('The operation was aborted');
@@ -255,7 +298,7 @@ test('5. Maps times out while Website completes', async () => {
       return jsonResp(200, { token: 'tok' });
     }
     if (url.endsWith('/api/campaign/start')) {
-      return jsonResp(200, { job_id: 'web_t5' });
+      return ++starts===1?jsonResp(200,{job_id:'web_t5'}):jsonResp(503,{message:'No additional sources available'});
     }
     if (url.endsWith('/api/campaign/status/web_t5')) {
       return jsonResp(200, {
@@ -456,7 +499,7 @@ test('11. Duplicate leads are removed during aggregation while preserving phone 
     orchestrator.normalizeLead(
       {
         company_name: 'Eastern Forgings Pvt Ltd',
-        decision_maker: 'Rajeshwar Northstar',
+        decision_maker: 'Rajeshwar Lakhotia',
         phone: '09830041289',
         email: 'md@easternforgings.in',
         website: 'https://www.easternforgings.in/'
@@ -468,7 +511,7 @@ test('11. Duplicate leads are removed during aggregation while preserving phone 
     orchestrator.normalizeLead(
       {
         company_name: 'eastern forgings pvt ltd',
-        decision_maker: 'rajeshwar northstar',
+        decision_maker: 'rajeshwar lakhotia',
         phone: '+91 09830041289'.replace('+91 ', ''),
         email: 'MD@EASTERNFORGINGS.IN',
         website: 'http://easternforgings.in'
@@ -585,6 +628,10 @@ test('15. Sanitized diagnostics contain no keys, tokens, cookies, or credentials
 test('16. Requested lead count accepts digits and words, then defaults to ten', () => {
   assert.equal(orchestrator.parsePrompt('Get 1 manufacturer in Kolkata').limit,1);
   assert.equal(orchestrator.parsePrompt('Find 6000 manufacturers in Kolkata').limit,6000);
+  const fifteen=orchestrator.parsePrompt('Find fifteen manufacturers in Kolkata');
+  assert.equal(fifteen.limit,15);
+  assert.equal(fifteen.query,'manufacturers');
+  assert.equal(orchestrator.parsePrompt('Find 20 manufacturers in Kolkata').limit,20);
   const clarified=orchestrator.parsePrompt('Find 10 prospects for my business. Business industry or sector: dental Target location for prospect search: kolkata');
   assert.equal(clarified.query,'dental');
   assert.equal(clarified.location,'kolkata');
@@ -594,7 +641,7 @@ test('16. Requested lead count accepts digits and words, then defaults to ten', 
   assert.equal(orchestrator.parsePrompt('Find dentists in Pune').limit, 10);
 });
 
-test('17. Both engines receive the requested count and polling stops at that count', async () => {
+test('17. Both engines receive a larger candidate budget and polling stops at the requested count', async () => {
   orchestrator.resetOrchestratorStateForTests();
   let mapsStartBody;
   let websiteStartBody;
@@ -612,7 +659,7 @@ test('17. Both engines receive the requested count and polling stops at that cou
       return jsonResp(200, { job_id: 'web_limit_3' });
     }
     if (url.endsWith('/api/scraper/status')) return jsonResp(200, { running: true });
-    if (url.includes('/api/scraper/leads?limit=5')) {
+    if (url.includes('/api/scraper/leads?limit=15')) {
       return jsonResp(200, { leads: [
         { company_name: 'Lead One', phone: '1001' },
         { company_name: 'Lead Two', phone: '1002' },
@@ -639,10 +686,10 @@ test('17. Both engines receive the requested count and polling stops at that cou
   await handler(mockReq({ method: 'POST', body: { prompt: 'Find five dentists in Pune' } }), startRes);
   const started = startRes.json();
   assert.equal(started.target_limit, 5);
-  assert.equal(mapsStartBody.max_results, 5);
-  assert.equal(websiteStartBody.target_count, 5);
+  assert.equal(mapsStartBody.max_results, 15);
+  assert.equal(websiteStartBody.target_count, 15);
   assert.equal(websiteStartBody.client_id,'approved_test_client');
-  assert.equal(websiteStartBody.filters.max_results, 5);
+  assert.equal(websiteStartBody.filters.max_results, 15);
   assert.equal(websiteStartHeaders.Authorization, 'Bearer tok');
   assert.equal(websiteStartHeaders.Cookie, 'session=test-session');
 
@@ -653,6 +700,66 @@ test('17. Both engines receive the requested count and polling stops at that cou
   assert.equal(result.running, false);
   assert.equal(result.leads.length, 5);
   assert.equal(mapsStopped, true);
+});
+
+test('discovery checks additional candidates until ten pass independent verification',async()=>{
+ orchestrator.resetOrchestratorStateForTests();
+ const {qualifyCandidates}=require('../lib/m360-lead-relevance');
+ const candidates=Array.from({length:30},(_,index)=>({company_name:'Company '+index,website:'https://candidate'+index+'.example'}));
+ const handler=createTestHandler(async(url,options={})=>{
+  if(url.endsWith('/api/scraper/run')){
+   assert.equal(JSON.parse(options.body).max_results,30);
+   return jsonResp(200,{job_id:'maps_candidate_budget'});
+  }
+  if(url.endsWith('/api/v1/auth/bootstrap'))return jsonResp(503,{});
+  if(url.endsWith('/api/scraper/status'))return jsonResp(200,{running:false});
+  if(url.endsWith('/api/scraper/leads?limit=30'))return jsonResp(200,{leads:candidates});
+  throw Error('Unexpected request: '+url);
+ },(leads,record)=>qualifyCandidates(leads,record,async url=>{
+  const index=Number(new URL(url).hostname.match(/\d+/)[0]);
+  const html=index<4||index>=12?'Manufacturer in Howrah':'Healthcare in Singapore';
+  return {url,mime:'text/html',bytes:Buffer.from(html)};
+ }));
+ const start=mockRes();
+ await handler(mockReq({method:'POST',body:{prompt:'Find 10 manufacturers in West Bengal'}}),start);
+ const query={campaign_id:start.json().campaign_id};
+ const first=mockRes();
+ await handler(mockReq({query}),first);
+ assert.equal(first.json().target_limit,10);
+ assert.equal(first.json().leads.length,4);
+ assert.equal(first.json().running,true);
+ assert.equal(first.json().target_reached,false);
+ const second=mockRes();
+ await handler(mockReq({query}),second);
+ assert.equal(second.json().leads.length,10);
+ assert.equal(second.json().running,false);
+ assert.equal(second.json().target_reached,true);
+ assert.ok(second.json().leads.every(lead=>lead.relevance.location_evidence==='howrah'));
+});
+
+test('a completed short Website search tops up the same request without counting duplicates',async()=>{
+ orchestrator.resetOrchestratorStateForTests();
+ let starts=0;
+ const business=(n)=>({company_name:'Manufacturer '+n,website:'https://manufacturer'+n+'.example'});
+ const handler=createTestHandler(async(url,options={})=>{
+  if(url.endsWith('/api/scraper/run'))return jsonResp(503,{});
+  if(url.endsWith('/api/v1/auth/bootstrap'))return jsonResp(200,{token:'session'},{'set-cookie':'session=cookie; HttpOnly'});
+  if(url.endsWith('/api/campaign/start')){
+   starts++;
+   if(starts===2)assert.match(JSON.parse(options.body).prompt,/Exclude businesses already found: Manufacturer 1/);
+   return jsonResp(200,{job_id:'top_up_'+starts});
+  }
+  if(url.endsWith('/top_up_1'))return jsonResp(200,{status:'completed',leads:[business(1)]});
+  if(url.endsWith('/top_up_2'))return jsonResp(200,{status:'completed',leads:[1,2,3,4,5,6].map(business)});
+  throw Error('Unexpected request: '+url);
+ });
+ const start=mockRes();
+ await handler(mockReq({method:'POST',body:{prompt:'Find 5 manufacturers in Kolkata'}}),start);
+ const campaign_id=start.json().campaign_id;
+ const first=mockRes();await handler(mockReq({query:{campaign_id,website_job_id:'top_up_1'}}),first);
+ assert.equal(first.json().running,true);assert.equal(first.json().website_job_id,'top_up_2');
+ const second=mockRes();await handler(mockReq({query:{campaign_id,website_job_id:'top_up_2'}}),second);
+ assert.equal(second.json().leads.length,5);assert.equal(second.json().target_reached,true);
 });
 
 test('Website refreshes a rejected session once without repeating a successful start',async()=>{
@@ -705,4 +812,73 @@ test('a request larger than the provider maximum continues in bounded batches',a
  const start=mockRes();await handler(mockReq({method:'POST',body:{prompt:'Find 501 manufacturers in Kolkata'}}),start);
  const poll=mockRes();await handler(mockReq({query:{campaign_id:start.json().campaign_id}}),poll);assert.equal(poll.json().running,true);assert.deepEqual(targets,[500,5]);
  const last=mockRes();await handler(mockReq({query:{campaign_id:start.json().campaign_id}}),last);assert.equal(last.json().target_reached,true);assert.equal(last.json().leads.length,501);
+});
+
+function setTestEnv(t, name, value) {
+  const previous = process.env[name];
+  process.env[name] = value;
+  t.after(() => {
+    if (previous === undefined) delete process.env[name];
+    else process.env[name] = previous;
+  });
+}
+
+test('Leads & Pipeline sends Maps start, polling and cancel to the configured V5 gateway', async (t) => {
+  const origin = 'https://maps-v5.example';
+  const key = 'synthetic-v5-gateway-key-for-test-only';
+  setTestEnv(t, 'M360_LEADS_PIPELINE_MAPS_URL', origin);
+  setTestEnv(t, 'M360_MAPS_V5_PROXY_KEY', key);
+  orchestrator.resetOrchestratorStateForTests();
+  const paths = [];
+  const handler = createTestHandler(async (url, options) => {
+    const parsed = new URL(url);
+    if (!parsed.pathname.startsWith('/api/scraper/')) return jsonResp(503, {});
+    assert.equal(parsed.origin, origin);
+    assert.equal(options.headers['x-m360-preview-proxy-key'], key);
+    assert.equal(options.headers['x-m360-workspace-id'], 'test-workspace');
+    assert.equal(options.redirect, 'error');
+    paths.push(parsed.pathname);
+    if (parsed.pathname.endsWith('/run')) return jsonResp(200, { job_id: 'v5-job' });
+    if (parsed.pathname.endsWith('/status')) return jsonResp(200, { running: true });
+    if (parsed.pathname.endsWith('/leads')) return jsonResp(200, { leads: [] });
+    return jsonResp(200, { status: 'stopping' });
+  });
+  const start = mockRes();
+  await handler(mockReq({ method: 'POST', body: { prompt: 'Find 3 steel manufacturers in Kolkata' } }), start);
+  const campaignId = start.json().campaign_id;
+  assert.equal(start.json().engines.maps.job_id, 'v5-job');
+  const poll = mockRes();
+  await handler(mockReq({ query: { campaign_id: campaignId } }), poll);
+  assert.equal(poll.json().engines.maps.status, 'running');
+  const stop = mockRes();
+  await handler(mockReq({ method: 'POST', query: { action: 'cancel' }, body: { campaign_id: campaignId } }), stop);
+  assert.equal(stop.json().engines.maps.status, 'cancelled');
+  assert.deepEqual(paths, ['/api/scraper/run', '/api/scraper/status', '/api/scraper/leads', '/api/scraper/stop']);
+});
+
+test('Maps does not send the V5 key to the legacy provider or use a legacy key for V5', async (t) => {
+  const legacyKey = 'synthetic-legacy-gateway-key-for-test-only';
+  setTestEnv(t, 'M360_MAPS_V4_THREE_WORKER_KEY', legacyKey);
+  setTestEnv(t, 'M360_MAPS_V5_PROXY_KEY', 'synthetic-v5-gateway-key-for-test-only');
+  setTestEnv(t, 'M360_LEADS_PIPELINE_MAPS_URL', '');
+  const keys = [];
+  const handler = createTestHandler(async (url, options) => {
+    if (!url.endsWith('/api/scraper/run')) return jsonResp(503, {});
+    keys.push(options.headers['x-m360-preview-proxy-key']);
+    return jsonResp(200, { job_id: 'legacy-job' });
+  });
+  const start = () => mockReq({ method: 'POST', body: { prompt: 'Find 3 steel manufacturers in Kolkata' } });
+  orchestrator.resetOrchestratorStateForTests();
+  const legacy = mockRes();
+  await handler(start(), legacy);
+  assert.equal(legacy.json().engines.maps.job_id, 'legacy-job');
+  assert.deepEqual(keys, [legacyKey]);
+
+  orchestrator.resetOrchestratorStateForTests();
+  process.env.M360_LEADS_PIPELINE_MAPS_URL = 'https://maps-v5.example';
+  process.env.M360_MAPS_V5_PROXY_KEY = '';
+  const unconfigured = mockRes();
+  await handler(start(), unconfigured);
+  assert.equal(unconfigured.json().engines.maps.error_code, 'MAPS_NOT_CONFIGURED');
+  assert.deepEqual(keys, [legacyKey]);
 });

@@ -197,8 +197,21 @@ module.exports=async function creativeBridge(req,res) {
     if(reply.status===422)return fail(res,422,'Creative request needs revision.');
     if(reply.status!==200||!reply.data||typeof reply.data!=='object')
       return fail(res,503,'Creative planner did not return a reviewable plan.');
-    const p=reply.data,txt=(v,max)=>typeof v==='string'?v.slice(0,max):'';
-    const channelDraft=createDraft({channel:platform,plan:p,business:safeBusinessName(own.name)});
+    const business=safeBusinessName(own.name);
+    const generated=reply.data.provider==='CONFIGURED_SEMANTIC_MODEL' && reply.data.semantic_ai_verified===true;
+    // The provider's limited fallback can quote private brief instructions as marketing copy.
+    const p=generated?reply.data:{
+      subject:'An introduction to '+business,
+      caption:'If you are exploring options, tell us what you need. We can discuss your requirements and help you decide whether we are a good fit.',
+      headlines:['An introduction to '+business],
+      cta:'Get in touch to discuss your requirements.'
+    };
+    const txt=(v,max)=>typeof v==='string'?v.slice(0,max):'';
+    const channelDraft=createDraft({channel:platform,plan:p,business});
+    if(!generated){
+      channelDraft.source='Matrix360 starter template';
+      channelDraft.disclosure='Add the specific offer and approved details before using this starter draft.';
+    }
     const headlines=Array.isArray(p.headlines)?p.headlines.slice(0,3).map(x=>txt(x,120)):[];
     const scenes=Array.isArray(p.scenes)?p.scenes.slice(0,3).map((s,i)=>({
       step:i+1,headline:txt(s?.headline,120),visual:txt(s?.visual_subject,180)})):[];
@@ -208,8 +221,8 @@ module.exports=async function creativeBridge(req,res) {
       origin:'Tanmayi Social Manager recovery staging',subject:txt(p.subject,180),
       caption:txt(p.caption,350),cta:txt(p.cta,80),headlines,scenes,
       channel_draft:channelDraft,
-      generation:p.provider==='CONFIGURED_SEMANTIC_MODEL'?'configured_model':'limited_prompt_derived',
-      semantic_ai_verified:p.semantic_ai_verified===true,
+      generation:generated?'configured_model':'limited_prompt_derived',
+      semantic_ai_verified:generated,
       note:'Draft copy and creative direction for human review. No email, WhatsApp message or social post has been sent or published.'
     }));
   }catch{return fail(res,503,'Creative Studio staging is unavailable. No action was submitted.');}
