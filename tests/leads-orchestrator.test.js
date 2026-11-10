@@ -882,3 +882,66 @@ test('Maps does not send the V5 key to the legacy provider or use a legacy key f
   assert.equal(unconfigured.json().engines.maps.error_code, 'MAPS_NOT_CONFIGURED');
   assert.deepEqual(keys, [legacyKey]);
 });
+
+test('V5 returns only official-source decision makers and never starts the website scraper', async t => {
+  setTestEnv(t,'M360_LEADS_PIPELINE_MAPS_URL','https://maps-v5.example');
+  setTestEnv(t,'M360_MAPS_V5_PROXY_KEY','synthetic-v5-gateway-key-for-test-only');
+  setTestEnv(t,'M360_AI_TRIAL_SUPABASE_SERVICE_KEY','synthetic-checkpoint-key-at-least-thirty-characters');
+  orchestrator.resetOrchestratorStateForTests();
+  const valid={id:'employee-42',business_name:'Example Steel',dm_name:'Asha Rao',dm_role:'Managing Director',dm_email:'asha.rao@example.com',email:'asha.rao@example.com',email_status:'Verified (MX)',website:'https://example.com',source_url:'https://example.com/team',phone:'+919999999999',phone_status:'Unverified'};
+  const invalid=[
+    {id:1,business_name:'Company only',phone:'+919888888888',website:'https://company.example'},
+    {...valid,id:'employee-43',dm_name:''},
+    {...valid,id:'employee-44',dm_role:'Junior analyst'},
+    {...valid,id:'employee-45',dm_email:'info@example.com'},
+    {...valid,id:'employee-46',email_status:'Unverified'},
+    {...valid,id:'employee-47',source_url:'https://other.example/team'}
+  ];
+  let running=true,starts=0,includePerson=true;
+  const handler=orchestrator.createUnifiedLeadsHandler(async(url,options={})=>{
+    if(url.endsWith('/me/workspaces'))return jsonResp(200,[{id:'test-workspace',role:'client_admin'}]);
+    if(url.includes('m360_brand_profiles'))return jsonResp(200,[]);
+    assert.equal(new URL(url).origin,'https://maps-v5.example','No website service or legacy Maps requests');
+    if(url.endsWith('/run')){starts++;assert.equal(JSON.parse(options.body).require_mode,'person_email');return jsonResp(200,{job_id:'person-job'});}
+    if(url.endsWith('/status'))return jsonResp(200,{running,job_id:'person-job'});
+    if(url.includes('/leads?')){
+      const params=new URL(url).searchParams;assert.equal(params.get('has_dm'),'true');assert.equal(params.get('has_email'),'true');
+      return jsonResp(200,{leads:includePerson?[...invalid,valid]:invalid});
+    }
+    if(url.endsWith('/stop'))return jsonResp(200,{});
+    throw Error('Unexpected provider call');
+  },async leads=>leads.map(lead=>({...lead,relevance:{matched:true}})));
+  const start=mockRes();await handler(mockReq({method:'POST',body:{prompt:'Find 2 steel manufacturers in Kolkata'}}),start);
+  assert.equal(start.json().engines.website.status,'disabled');assert.equal(start.json().website_job_id,null);
+  const poll=mockRes();await handler(mockReq({query:{campaign_id:start.json().campaign_id}}),poll);
+  assert.equal(poll.json().overall_status,'running');assert.equal(poll.json().counts.website,0);
+  assert.equal(poll.json().leads.length,1);
+  const lead=poll.json().leads[0];assert.equal(lead.decision_maker,'Asha Rao');assert.equal(lead.role,'Managing Director');assert.equal(lead.email,'asha.rao@example.com');assert.equal(lead.phone,'');assert.equal(lead.source_url,'https://example.com/team');
+  assert.equal(orchestrator.savedCandidates('test-workspace').length,1);
+  assert.equal(orchestrator.savedCandidates('other-workspace').length,0);
+  running=false;
+  const done=mockRes();await handler(mockReq({query:{campaign_id:start.json().campaign_id}}),done);
+  assert.equal(done.json().overall_status,'completed');assert.equal(done.json().running,false);assert.equal(starts,1);
+  assert.equal(done.json().engines.website.status,'disabled');
+  orchestrator.resetOrchestratorStateForTests();includePerson=false;
+  const emptyStart=mockRes();await handler(mockReq({method:'POST',body:{prompt:'Find 2 steel manufacturers in Kolkata'}}),emptyStart);
+  const empty=mockRes();await handler(mockReq({query:{campaign_id:emptyStart.json().campaign_id}}),empty);
+  assert.equal(empty.json().overall_status,'completed');assert.deepEqual(empty.json().leads,[]);
+  assert.equal(empty.json().counts.total,0);assert.equal(empty.json().engines.website.status,'disabled');
+});
+
+test('V5 rejects checkpoints from earlier company-only searches',async t=>{
+  const secret='synthetic-checkpoint-key-at-least-thirty-characters';
+  setTestEnv(t,'M360_LEADS_PIPELINE_MAPS_URL','https://maps-v5.example');
+  setTestEnv(t,'M360_AI_TRIAL_SUPABASE_SERVICE_KEY',secret);
+  orchestrator.resetOrchestratorStateForTests();
+  const crypto=require('node:crypto'),iv=crypto.randomBytes(12);
+  const cipher=crypto.createCipheriv('aes-256-gcm',crypto.createHash('sha256').update('m360-discovery-v1:'+secret).digest(),iv);
+  const old={campaign_id:'old-company-search',client_scope:'test-workspace',created_at_ms:Date.now(),maps_leads:[{name:'Old company'}],website_leads:[]};
+  const encrypted=Buffer.concat([cipher.update(JSON.stringify(old)),cipher.final()]);
+  const checkpoint=Buffer.concat([iv,cipher.getAuthTag(),encrypted]).toString('base64url');
+  const handler=createTestHandler(async()=>{throw Error('Old job must not poll providers');});
+  const res=mockRes();await handler(mockReq({query:{campaign_id:old.campaign_id,checkpoint}}),res);
+  assert.equal(res.statusCode,404);
+  assert.deepEqual(orchestrator.savedCandidates('test-workspace',old.campaign_id,checkpoint),[]);
+});
